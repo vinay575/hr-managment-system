@@ -4,7 +4,7 @@ import { Check, Receipt, Save, ShieldCheck, SlidersHorizontal, Tag } from 'lucid
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../lib/api';
-import { Button, Card, Field, Input, LoadingBlock, SectionTitle, Select, Textarea } from '../../components/ui';
+import { Button, Card, Input, LoadingBlock, SectionTitle, Select, Textarea } from '../../components/ui';
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'INR', 'AED', 'SGD', 'AUD', 'CAD', 'JPY'];
 
@@ -13,7 +13,7 @@ const Toggle = ({ checked, onChange, label, description }) => (
     <span className={`mt-0.5 flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition ${checked ? 'bg-brand-600' : 'bg-slate-200'}`}>
       <span className={`h-4 w-4 rounded-full bg-white shadow transition ${checked ? 'translate-x-4' : ''}`} />
     </span>
-    <input type="checkbox" className="hidden" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+    <input id={`expense-toggle-${label.replace(/\s+/g, '-').toLowerCase()}`} name={label} type="checkbox" className="hidden" checked={checked} onChange={(e) => onChange(e.target.checked)} />
     <span>
       <span className="block text-[12.5px] font-semibold text-ink-800">{label}</span>
       <span className="block text-[11px] text-slate-400">{description}</span>
@@ -186,11 +186,10 @@ export default function ExpenseSettings() {
           </Card>
 
           <Card className="p-5">
-            <Field label="Policy notes">
-              <p className="text-[11.5px] leading-relaxed text-slate-500">
-                Changing these values never alters existing claims. Receipt requirements are re-checked when a claim is submitted or resubmitted.
-              </p>
-            </Field>
+            <p className="label">Policy notes</p>
+            <p className="text-[11.5px] leading-relaxed text-slate-500">
+              Changing these values never alters existing claims. Receipt requirements are re-checked when a claim is submitted or resubmitted.
+            </p>
           </Card>
         </div>
       </div>

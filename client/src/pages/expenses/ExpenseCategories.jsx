@@ -138,7 +138,7 @@ export default function ExpenseCategories() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <SearchInput value={search} onChange={setSearch} placeholder="Search categories…" className="w-full sm:w-72" />
           <label className="flex items-center gap-2 text-[12px] font-medium text-slate-500">
-            <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500/20" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
+            <input id="expense-show-inactive" name="show_inactive" type="checkbox" className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500/20" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
             Show inactive categories
           </label>
         </div>
@@ -230,14 +230,14 @@ export default function ExpenseCategories() {
           />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 px-3.5 py-3">
-              <input type="checkbox" className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500/20" checked={form.receiptRequired} onChange={(e) => setForm((p) => ({ ...p, receiptRequired: e.target.checked }))} />
+              <input id="expense-receipt-required" name="receipt_required" type="checkbox" className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500/20" checked={form.receiptRequired} onChange={(e) => setForm((p) => ({ ...p, receiptRequired: e.target.checked }))} />
               <span>
                 <span className="block text-[12.5px] font-semibold text-ink-800">Receipt required</span>
                 <span className="block text-[11px] text-slate-400">Employees must attach proof before submission.</span>
               </span>
             </label>
             <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 px-3.5 py-3">
-              <input type="checkbox" className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500/20" checked={form.requiresApproval} onChange={(e) => setForm((p) => ({ ...p, requiresApproval: e.target.checked }))} />
+              <input id="expense-requires-approval" name="requires_approval" type="checkbox" className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500/20" checked={form.requiresApproval} onChange={(e) => setForm((p) => ({ ...p, requiresApproval: e.target.checked }))} />
               <span>
                 <span className="block text-[12.5px] font-semibold text-ink-800">Requires approval</span>
                 <span className="block text-[11px] text-slate-400">Route claims through the approval workflow.</span>

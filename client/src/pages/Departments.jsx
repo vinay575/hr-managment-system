@@ -222,8 +222,8 @@ function DepartmentForm({ open, onClose, editing, onSaved }) {
       <div className="space-y-4">
         {error && <div className="rounded-xl bg-rose-50 px-4 py-3 text-[12.5px] font-medium text-rose-600">{error}</div>}
         <Input label="Department name" required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Engineering" />
-        <Field label="Description">
-          <textarea className="input min-h-[90px] resize-y" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="What does this team do?" />
+        <Field label="Description" htmlFor="department-description">
+          <textarea id="department-description" name="description" className="input min-h-[90px] resize-y" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="What does this team do?" />
         </Field>
         <Select label="Department head" value={form.head_id} onChange={(e) => setForm((f) => ({ ...f, head_id: e.target.value }))}>
           <option value="">Not assigned</option>

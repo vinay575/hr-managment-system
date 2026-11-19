@@ -149,9 +149,9 @@ export default function ReviewCycles() {
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span className="text-[11px] text-slate-400">Cycle window</span>
-            <input type="date" className="input w-auto py-1.5 text-[12px]" value={filters.from} onChange={(e) => setFilter('from', e.target.value)} />
+            <input id="review-cycles-from" name="from" aria-label="Cycle window from" type="date" className="input w-auto py-1.5 text-[12px]" value={filters.from} onChange={(e) => setFilter('from', e.target.value)} />
             <span className="text-[11px] text-slate-400">to</span>
-            <input type="date" className="input w-auto py-1.5 text-[12px]" value={filters.to} onChange={(e) => setFilter('to', e.target.value)} />
+            <input id="review-cycles-to" name="to" aria-label="Cycle window to" type="date" className="input w-auto py-1.5 text-[12px]" value={filters.to} onChange={(e) => setFilter('to', e.target.value)} />
             <span className="ml-auto text-[11px] text-slate-400">{total} cycle{total === 1 ? '' : 's'}</span>
           </div>
         </div>

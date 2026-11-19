@@ -626,8 +626,10 @@ export default function CandidatePortal() {
         }
       >
         <div>
-          <label className="block text-[12px] font-semibold text-slate-700 mb-1.5">Reason for declining</label>
+          <label htmlFor="candidate-decline-reason" className="block text-[12px] font-semibold text-slate-700 mb-1.5">Reason for declining</label>
           <textarea
+            id="candidate-decline-reason"
+            name="decline_reason"
             rows={3}
             className="w-full rounded-xl border border-slate-200 p-3 text-[13px] text-slate-800 placeholder-slate-400"
             placeholder="e.g. Accepted another offer, relocation issues..."
@@ -673,8 +675,10 @@ export default function CandidatePortal() {
             <option value="other">Other Document</option>
           </Select>
           <div>
-            <label className="block text-[12px] font-semibold text-slate-700 mb-1.5">Select File</label>
+            <label htmlFor="candidate-document-file" className="block text-[12px] font-semibold text-slate-700 mb-1.5">Select File</label>
             <input
+              id="candidate-document-file"
+              name="document_file"
               type="file"
               onChange={(e) => setFileToUpload(e.target.files[0])}
               className="w-full text-[13px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[12px] file:font-semibold file:bg-brand-50 file:text-brand-700"

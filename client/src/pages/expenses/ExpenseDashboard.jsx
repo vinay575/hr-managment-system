@@ -126,9 +126,9 @@ export default function ExpenseDashboard() {
           </div>
           {range === 'custom' && (
             <div className="flex flex-wrap items-center gap-2">
-              <input type="date" className="input w-auto py-2 text-[12.5px]" value={custom.from} onChange={(e) => setCustom((p) => ({ ...p, from: e.target.value }))} />
+              <input id="expense-dashboard-from" name="from" aria-label="From date" type="date" className="input w-auto py-2 text-[12.5px]" value={custom.from} onChange={(e) => setCustom((p) => ({ ...p, from: e.target.value }))} />
               <span className="text-[11px] text-slate-400">to</span>
-              <input type="date" className="input w-auto py-2 text-[12.5px]" value={custom.to} onChange={(e) => setCustom((p) => ({ ...p, to: e.target.value }))} />
+              <input id="expense-dashboard-to" name="to" aria-label="To date" type="date" className="input w-auto py-2 text-[12.5px]" value={custom.to} onChange={(e) => setCustom((p) => ({ ...p, to: e.target.value }))} />
             </div>
           )}
         </div>

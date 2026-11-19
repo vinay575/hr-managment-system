@@ -305,7 +305,8 @@ export function GoalForm({ open, onClose, onSaved, goal, employees = [], departm
         <Input label="Goal title" required value={form.title} maxLength={180} onChange={(e) => set({ title: e.target.value })} placeholder="e.g. Launch the Q4 customer onboarding refresh" />
         <Textarea label="Goal description" required value={form.description} rows={4} onChange={(e) => set({ description: e.target.value })} placeholder="What does success look like?" />
 
-        <Field label="Assigned employee(s)" required hint={editing ? 'Reassigning is not supported — create a new goal for a different employee.' : 'Assign to one or more employees at once.'}>
+        <div>
+          <p className="label">Assigned employee(s) <span className="text-rose-500">*</span></p>
           {editing ? (
             <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
               <Avatar name={goal.employee_name} color={goal.avatar_color || 'indigo'} size="sm" />
@@ -317,7 +318,8 @@ export function GoalForm({ open, onClose, onSaved, goal, employees = [], departm
           ) : (
             <EmployeePicker employees={employees} value={form.employeeIds} onChange={(ids) => set({ employeeIds: ids })} />
           )}
-        </Field>
+          <p className="mt-1.5 text-xs text-slate-400">{editing ? 'Reassigning is not supported — create a new goal for a different employee.' : 'Assign to one or more employees at once.'}</p>
+        </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Select label="Department" value={form.departmentId} onChange={(e) => set({ departmentId: e.target.value })}>
@@ -332,9 +334,11 @@ export function GoalForm({ open, onClose, onSaved, goal, employees = [], departm
           <Select label="Goal status" value={form.status} onChange={(e) => set({ status: e.target.value })}>
             {EDITABLE_GOAL_STATUSES.map((key) => <option key={key} value={key}>{GOAL_STATUS[key].label}</option>)}
           </Select>
-          <Field label="Attachments" hint="PDF, JPG, PNG or WEBP · up to 5 files · 10 MB each.">
+          <Field label="Attachments" hint="PDF, JPG, PNG or WEBP · up to 5 files · 10 MB each." htmlFor="goal-attachments">
             <input
               ref={fileRef}
+              id="goal-attachments"
+              name="attachments"
               type="file"
               multiple
               accept=".pdf,.jpg,.jpeg,.png,.webp"
@@ -444,6 +448,9 @@ export function GoalProgressModal({ open, onClose, goal, onSaved }) {
             <p className="font-display text-[22px] font-bold leading-none text-ink-900 tabular">{percentage}%</p>
           </div>
           <input
+            id="goal-progress-range"
+            name="progress_range"
+            aria-label="Progress percentage"
             type="range"
             min="0"
             max="100"
@@ -456,6 +463,9 @@ export function GoalProgressModal({ open, onClose, goal, onSaved }) {
             <progress className="sr-only" value={percentage} max="100" />
             <Progress value={percentage} tone={progressTone(status)} className="flex-1" />
             <input
+              id="goal-progress-value"
+              name="progress_value"
+              aria-label="Progress percentage value"
               type="number"
               min="0"
               max="100"
@@ -472,9 +482,11 @@ export function GoalProgressModal({ open, onClose, goal, onSaved }) {
 
         <Textarea label="Progress notes" value={notes} rows={3} onChange={(e) => setNotes(e.target.value)} placeholder="What changed since the last update?" />
 
-        <Field label="Supporting attachment" hint="Optional · PDF, JPG, PNG or WEBP · 10 MB max.">
+        <Field label="Supporting attachment" hint="Optional · PDF, JPG, PNG or WEBP · 10 MB max." htmlFor="goal-supporting-attachment">
           <input
             ref={fileRef}
+            id="goal-supporting-attachment"
+            name="supporting_attachment"
             type="file"
             multiple
             accept=".pdf,.jpg,.jpeg,.png,.webp"
@@ -873,9 +885,11 @@ export function ReviewCycleForm({ open, onClose, onSaved, cycle, employees = [],
             </Select>
           )}
         </div>
-        <Field label="Applicable employees" required hint="Goal completion for these employees during the review period is summarised automatically.">
+        <div>
+          <p className="label">Applicable employees <span className="text-rose-500">*</span></p>
           <EmployeePicker employees={employees} value={form.employeeIds} onChange={(ids) => set({ employeeIds: ids })} />
-        </Field>
+          <p className="mt-1.5 text-xs text-slate-400">Goal completion for these employees during the review period is summarised automatically.</p>
+        </div>
       </div>
     </Modal>
   );

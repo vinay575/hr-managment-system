@@ -173,15 +173,15 @@ export default function Employees() {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search name, role, email or ID…" className="flex-1" />
           <div className="flex flex-wrap items-center gap-2.5">
-            <select value={department} onChange={(e) => { setDepartment(e.target.value); setPage(1); }} className="input w-auto min-w-[150px] py-2.5 text-[13px]">
+            <select id="employees-department" name="department" aria-label="Filter by department" value={department} onChange={(e) => { setDepartment(e.target.value); setPage(1); }} className="input w-auto min-w-[150px] py-2.5 text-[13px]">
               <option value="">All departments</option>
               {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
-            <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} className="input w-auto min-w-[120px] py-2.5 text-[13px]">
+            <select id="employees-status" name="status" aria-label="Filter by status" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} className="input w-auto min-w-[120px] py-2.5 text-[13px]">
               <option value="">Any status</option>
               {STATUSES.map((s) => <option key={s} value={s}>{capitalize(s)}</option>)}
             </select>
-            <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); }} className="input w-auto min-w-[130px] py-2.5 text-[13px]">
+            <select id="employees-sort" name="sort" aria-label="Sort employees" value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); }} className="input w-auto min-w-[130px] py-2.5 text-[13px]">
               <option value="newest">Newest first</option>
               <option value="oldest">Oldest first</option>
               <option value="name">Name A–Z</option>
@@ -487,8 +487,8 @@ function EmployeeForm({ open, onClose, editing, departments, onSaved }) {
 
         <div>
           <h3 className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">About & avatar</h3>
-          <Field label="Short bio">
-            <textarea className="input min-h-[84px] resize-y" value={form.bio} onChange={set('bio')} placeholder="A sentence or two about this person…" />
+          <Field label="Short bio" htmlFor="employee-bio">
+            <textarea id="employee-bio" name="bio" className="input min-h-[84px] resize-y" value={form.bio} onChange={set('bio')} placeholder="A sentence or two about this person…" />
           </Field>
           <div className="mt-4">
             <p className="label">Avatar colour</p>
@@ -521,6 +521,8 @@ function EmployeeForm({ open, onClose, editing, departments, onSaved }) {
               <label className="relative inline-flex cursor-pointer items-center">
                 <input
                   type="checkbox"
+                  id="employee-create-login"
+                  name="create_login"
                   checked={Boolean(form.create_login)}
                   onChange={(e) => setForm((f) => ({ ...f, create_login: e.target.checked }))}
                   className="h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
@@ -542,11 +544,12 @@ function EmployeeForm({ open, onClose, editing, departments, onSaved }) {
                   />
                 </div>
                 <div>
-                  <Field label="Workspace role">
+                  <div>
+                    <p className="label">Workspace role</p>
                     <div className="flex h-10 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-[13px] font-semibold text-ink-800">
                       Employee (Self-service only)
                     </div>
-                  </Field>
+                  </div>
                 </div>
                 <p className="text-[11px] text-slate-500 sm:col-span-2">
                   Login will use their work email: <strong className="text-ink-800">{form.email || '—'}</strong>.

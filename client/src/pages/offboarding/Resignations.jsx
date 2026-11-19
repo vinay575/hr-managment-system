@@ -271,8 +271,10 @@ export default function Resignations() {
             placeholder="e.g. Higher Education, Personal Reasons, Relocation"
           />
           <div>
-            <label className="block text-[12px] font-semibold text-slate-700 mb-1.5">Comments & Handover Notes</label>
+            <label htmlFor="resignation-comments" className="block text-[12px] font-semibold text-slate-700 mb-1.5">Comments &amp; Handover Notes</label>
             <textarea
+              id="resignation-comments"
+              name="comments"
               rows={3}
               className="w-full rounded-xl border border-slate-200 p-3 text-[13px] text-slate-800 placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               value={form.comments}
@@ -309,8 +311,10 @@ export default function Resignations() {
             />
           )}
           <div>
-            <label className="block text-[12px] font-semibold text-slate-700 mb-1.5">Feedback / Clarification Notes</label>
+            <label htmlFor="resignation-review-notes" className="block text-[12px] font-semibold text-slate-700 mb-1.5">Feedback / Clarification Notes</label>
             <textarea
+              id="resignation-review-notes"
+              name="review_notes"
               rows={3}
               className="w-full rounded-xl border border-slate-200 p-3 text-[13px] text-slate-800 placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               value={reviewModal.notes}

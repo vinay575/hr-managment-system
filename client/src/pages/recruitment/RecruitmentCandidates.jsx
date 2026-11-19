@@ -328,14 +328,14 @@ export default function RecruitmentCandidates() {
             </Select>
           )}
           <div className="sm:col-span-2">
-            <label className="label">Resume <span className="font-normal text-slate-400">(PDF, DOC or DOCX · max 5 MB)</span></label>
+            <label htmlFor="candidate-resume" className="label">Resume <span className="font-normal text-slate-400">(PDF, DOC or DOCX · max 5 MB)</span></label>
             <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50/60 px-4 py-3 transition hover:border-brand-300 hover:bg-brand-50/30">
               <span className="flex min-w-0 items-center gap-2 text-[13px] text-slate-600">
                 <FileText size={16} className="shrink-0 text-slate-400" />
                 <span className="truncate">{file ? file.name : editing?.resume_original_name || 'Choose a resume file'}</span>
               </span>
               <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-brand-600"><Upload size={14} /> Browse</span>
-              <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+              <input id="candidate-resume" name="resume" type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
             </label>
           </div>
         </div>

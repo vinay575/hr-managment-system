@@ -602,8 +602,10 @@ export default function OnboardingDetail() {
             placeholder="e.g. Passport Copy"
           />
           <div>
-            <label className="block text-[12px] font-semibold text-slate-700 mb-1.5">Select File</label>
+            <label htmlFor="onboarding-document-file" className="block text-[12px] font-semibold text-slate-700 mb-1.5">Select File</label>
             <input
+              id="onboarding-document-file"
+              name="document_file"
               type="file"
               onChange={(e) => setFileToUpload(e.target.files[0])}
               className="w-full text-[13px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[12px] file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"

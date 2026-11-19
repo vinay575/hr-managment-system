@@ -181,9 +181,9 @@ export default function PerformanceReports() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><Filter size={12} />{tab === 'review-cycles' ? 'Cycle window' : 'Target date'}</span>
-          <input type="date" className="input w-auto py-1.5 text-[12px]" value={filters.from} onChange={(e) => setFilter('from', e.target.value)} />
+          <input id="performance-reports-from" name="from" aria-label="Filter from date" type="date" className="input w-auto py-1.5 text-[12px]" value={filters.from} onChange={(e) => setFilter('from', e.target.value)} />
           <span className="text-[11px] text-slate-400">to</span>
-          <input type="date" className="input w-auto py-1.5 text-[12px]" value={filters.to} onChange={(e) => setFilter('to', e.target.value)} />
+          <input id="performance-reports-to" name="to" aria-label="Filter to date" type="date" className="input w-auto py-1.5 text-[12px]" value={filters.to} onChange={(e) => setFilter('to', e.target.value)} />
         </div>
       </Card>
 

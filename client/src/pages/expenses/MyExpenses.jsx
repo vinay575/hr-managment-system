@@ -174,7 +174,7 @@ export default function MyExpenses() {
           <Tabs value={status} onChange={(v) => { setStatus(v); setPage(1); }} items={STATUS_TABS.map((t) => ({ ...t, count: t.key === '' ? data.total : undefined }))} />
           <div className="flex flex-wrap items-center gap-2">
             <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search claims…" className="w-full sm:w-56" />
-            <select value={categoryId} onChange={(e) => { setCategoryId(e.target.value); setPage(1); }} className="input w-auto min-w-[160px] py-2 text-[12.5px]">
+            <select id="my-expenses-category" name="category_id" aria-label="Filter by category" value={categoryId} onChange={(e) => { setCategoryId(e.target.value); setPage(1); }} className="input w-auto min-w-[160px] py-2 text-[12.5px]">
               <option value="">All categories</option>
               {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>

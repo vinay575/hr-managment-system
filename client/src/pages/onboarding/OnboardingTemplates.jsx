@@ -159,7 +159,7 @@ export default function OnboardingTemplates() {
 
           <div className="pt-2">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[12px] font-semibold text-slate-700">Checklist Tasks</label>
+              <p className="text-[12px] font-semibold text-slate-700">Checklist Tasks</p>
               <Button variant="secondary" size="sm" icon={Plus} onClick={addTask}>Add Task</Button>
             </div>
             <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
@@ -172,6 +172,9 @@ export default function OnboardingTemplates() {
                     className="flex-1"
                   />
                   <select
+                    id={`template-task-category-${idx}`}
+                    name={`task_category_${idx}`}
+                    aria-label={`Category for task ${idx + 1}`}
                     className="text-[12px] rounded-lg border border-slate-200 bg-white px-2 py-1.5"
                     value={task.category}
                     onChange={(e) => updateTask(idx, 'category', e.target.value)}

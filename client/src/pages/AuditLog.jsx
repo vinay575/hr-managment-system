@@ -74,11 +74,11 @@ export default function AuditLog() {
       <Card className="p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search actor, action, entity or details…" className="flex-1" />
-          <select value={action} onChange={(e) => { setAction(e.target.value); setPage(1); }} className="input w-auto min-w-[180px] py-2.5 text-[13px]">
+          <select id="audit-action" name="action" aria-label="Filter by action" value={action} onChange={(e) => { setAction(e.target.value); setPage(1); }} className="input w-auto min-w-[180px] py-2.5 text-[13px]">
             <option value="">All actions</option>
             {(data.actions || []).map((a) => <option key={a} value={a}>{a}</option>)}
           </select>
-          <select value={role} onChange={(e) => { setRole(e.target.value); setPage(1); }} className="input w-auto min-w-[150px] py-2.5 text-[13px]">
+          <select id="audit-role" name="role" aria-label="Filter by role" value={role} onChange={(e) => { setRole(e.target.value); setPage(1); }} className="input w-auto min-w-[150px] py-2.5 text-[13px]">
             <option value="">All roles</option>
             <option value="super_admin">Super Admin</option>
             <option value="ceo">CEO</option>

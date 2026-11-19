@@ -106,7 +106,7 @@ function ManagerPayroll() {
           <p className="mt-1 text-[13px] text-slate-500">Generate payslips, track payments and keep compensation crystal clear.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
-          <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="input w-auto py-2.5 text-[13px]" />
+          <input id="payroll-month" name="month" aria-label="Payroll month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="input w-auto py-2.5 text-[13px]" />
           {canManage && <Button variant="primary" icon={Plus} onClick={() => setGenerateOpen(true)}>Generate payroll</Button>}
         </div>
       </div>
@@ -263,7 +263,7 @@ function EmployeePayroll() {
           <h1 className="mt-1 font-display text-[24px] font-extrabold tracking-tight text-ink-900">My payroll</h1>
           <p className="mt-1 text-[13px] text-slate-500">Your earnings, allowances and payslips — clear and simple.</p>
         </div>
-        <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="input w-auto py-2.5 text-[13px]" />
+        <input id="my-payroll-month" name="month" aria-label="Payroll month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="input w-auto py-2.5 text-[13px]" />
       </div>
 
       {loading ? (

@@ -282,6 +282,9 @@ export default function AccessControl() {
                       </td>
                       <td className="table-cell">
                         <select
+                          id={`user-role-${u.id}`}
+                          name={`user-role-${u.id}`}
+                          aria-label={`Role for ${u.name}`}
                           value={u.role}
                           onChange={(e) => patchUser(u, { role: e.target.value })}
                           disabled={u.id === me?.id}
@@ -371,6 +374,8 @@ export default function AccessControl() {
                             <td key={r.key} className="table-cell text-center">
                               <input
                                 type="checkbox"
+                                id={`perm-${r.key}-${p.key}`}
+                                name={`perm-${r.key}-${p.key}`}
                                 checked={(matrix[r.key] || []).includes(p.key)}
                                 onChange={() => togglePermission(r.key, p.key)}
                                 className="h-4 w-4 cursor-pointer rounded border-slate-300 accent-indigo-600"
@@ -419,14 +424,15 @@ export default function AccessControl() {
               {roles.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
             </Select>
           ) : (
-            <Field label="Role">
+            <div>
+              <p className="label">Role</p>
               <div className="flex h-10 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-[13px] font-semibold text-ink-800">
                 Employee
               </div>
-            </Field>
+            </div>
           )}
-          <Field label="Linked employee" hint="Optional — links this account to an employee record." className="sm:col-span-2">
-            <select value={form.employee_id} onChange={(e) => setForm((f) => ({ ...f, employee_id: e.target.value }))} className="input">
+          <Field label="Linked employee" hint="Optional — links this account to an employee record." className="sm:col-span-2" htmlFor="access-linked-employee">
+            <select id="access-linked-employee" name="employee_id" value={form.employee_id} onChange={(e) => setForm((f) => ({ ...f, employee_id: e.target.value }))} className="input">
               <option value="">No linked employee</option>
               {options.map((o) => (
                 <option key={o.id} value={o.id}>{o.first_name} {o.last_name} · {o.designation}</option>

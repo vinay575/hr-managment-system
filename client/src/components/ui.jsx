@@ -201,11 +201,22 @@ export function Textarea({ label, error, className, ...props }) {
 /* ------------------------------------------------------------------ */
 /*  Search / Modal / Tabs                                              */
 /* ------------------------------------------------------------------ */
-export function SearchInput({ value, onChange, placeholder = 'Search…', className }) {
+export function SearchInput({ value, onChange, placeholder = 'Search…', className, id, name }) {
+  const generatedId = useId();
+  const inputId = id || generatedId;
   return (
     <div className={clsx('relative', className)}>
       <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-      <input className="input pl-10" placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
+      <input
+        id={inputId}
+        name={name || inputId}
+        type="search"
+        aria-label={placeholder}
+        className="input pl-10"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </div>
   );
 }

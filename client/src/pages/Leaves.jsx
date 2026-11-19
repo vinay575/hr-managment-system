@@ -139,7 +139,7 @@ function ManagerLeaves({ user }) {
       <Card className="p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <StatusTabs value={status} onChange={setStatus} manager stats={stats} />
-          <select value={type} onChange={(e) => setType(e.target.value)} className="input w-auto min-w-[160px] py-2 text-[12.5px]">
+          <select id="leaves-type" name="type" aria-label="Filter by leave type" value={type} onChange={(e) => setType(e.target.value)} className="input w-auto min-w-[160px] py-2 text-[12.5px]">
             <option value="">All leave types</option>
             {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
@@ -513,8 +513,8 @@ function LeaveForm({ open, onClose, onSaved, manager = false }) {
             <span className="font-bold text-brand-700">{days} day{days === 1 ? '' : 's'}</span>
           </div>
         )}
-        <Field label="Reason" hint="A short note helps your manager plan coverage.">
-          <textarea className="input min-h-[90px] resize-y" value={form.reason} onChange={set('reason')} placeholder="A little context about your time off…" />
+        <Field label="Reason" hint="A short note helps your manager plan coverage." htmlFor="leave-reason">
+          <textarea id="leave-reason" name="reason" className="input min-h-[90px] resize-y" value={form.reason} onChange={set('reason')} placeholder="A little context about your time off…" />
         </Field>
       </div>
     </Modal>

@@ -124,9 +124,9 @@ export default function Reimbursements() {
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative w-full sm:w-56">
                 <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input className="input py-2 pl-10 text-[12.5px]" placeholder="Search claim or reference…" value={search} onChange={(e) => setSearch(e.target.value)} />
+                <input id="reimbursements-search" name="search" aria-label="Search claim or reference" className="input py-2 pl-10 text-[12.5px]" placeholder="Search claim or reference…" value={search} onChange={(e) => setSearch(e.target.value)} />
               </div>
-              <select className="input w-auto min-w-[150px] py-2 text-[12.5px]" value={status} onChange={(e) => setStatus(e.target.value)}>
+              <select id="reimbursements-status" name="status" aria-label="Payment status" className="input w-auto min-w-[150px] py-2 text-[12.5px]" value={status} onChange={(e) => setStatus(e.target.value)}>
                 <option value="">All statuses</option>
                 {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{REIMBURSEMENT_STATUS[s]?.label || s}</option>)}
               </select>
@@ -220,6 +220,9 @@ export default function Reimbursements() {
                     <td className="table-cell">{r.processed_by_name || '—'}</td>
                     <td className="table-cell">
                       <select
+                        id={`reimbursement-status-${r.id}`}
+                        name={`payment_status_${r.id}`}
+                        aria-label="Update payment status"
                         className={clsx('input w-auto min-w-[130px] py-1.5 text-[11.5px]', r.payment_status === 'paid' && 'text-emerald-600')}
                         value={r.payment_status}
                         disabled={updating === r.id || r.payment_status === 'paid'}

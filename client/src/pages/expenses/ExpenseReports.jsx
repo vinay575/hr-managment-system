@@ -155,27 +155,27 @@ export default function ExpenseReports() {
         <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-6">
           {filters.range === 'custom' && (
             <>
-              <input type="date" className="input py-2 text-[12.5px]" value={filters.from} onChange={(e) => update('from', e.target.value)} title="From" />
-              <input type="date" className="input py-2 text-[12.5px]" value={filters.to} onChange={(e) => update('to', e.target.value)} title="To" />
+              <input id="expense-reports-from" name="from" aria-label="From date" type="date" className="input py-2 text-[12.5px]" value={filters.from} onChange={(e) => update('from', e.target.value)} title="From" />
+              <input id="expense-reports-to" name="to" aria-label="To date" type="date" className="input py-2 text-[12.5px]" value={filters.to} onChange={(e) => update('to', e.target.value)} title="To" />
             </>
           )}
           {employees.length > 0 && (
-            <select className="input py-2 text-[12.5px]" value={filters.employeeId} onChange={(e) => update('employeeId', e.target.value)}>
+            <select id="expense-reports-employee" name="employee_id" aria-label="Employee" className="input py-2 text-[12.5px]" value={filters.employeeId} onChange={(e) => update('employeeId', e.target.value)}>
               <option value="">All employees</option>
               {employees.map((emp) => <option key={emp.id} value={emp.id}>{emp.first_name} {emp.last_name}</option>)}
             </select>
           )}
           {departments.length > 0 && (
-            <select className="input py-2 text-[12.5px]" value={filters.departmentId} onChange={(e) => update('departmentId', e.target.value)}>
+            <select id="expense-reports-department" name="department_id" aria-label="Department" className="input py-2 text-[12.5px]" value={filters.departmentId} onChange={(e) => update('departmentId', e.target.value)}>
               <option value="">All departments</option>
               {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
           )}
-          <select className="input py-2 text-[12.5px]" value={filters.categoryId} onChange={(e) => update('categoryId', e.target.value)}>
+          <select id="expense-reports-category" name="category_id" aria-label="Category" className="input py-2 text-[12.5px]" value={filters.categoryId} onChange={(e) => update('categoryId', e.target.value)}>
             <option value="">All categories</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-          <select className="input py-2 text-[12.5px]" value={filters.status} onChange={(e) => update('status', e.target.value)}>
+          <select id="expense-reports-status" name="status" aria-label="Status" className="input py-2 text-[12.5px]" value={filters.status} onChange={(e) => update('status', e.target.value)}>
             <option value="">All statuses</option>
             {Object.entries(EXPENSE_STATUS).map(([key, meta]) => <option key={key} value={key}>{meta.label}</option>)}
           </select>

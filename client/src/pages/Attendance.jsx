@@ -124,11 +124,11 @@ function ManagerAttendance() {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <Segmented options={[{ value: 'today', label: 'Daily view' }, { value: 'month', label: 'Monthly view' }]} value={mode} onChange={setMode} />
           {mode === 'today' ? (
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input w-auto py-2.5 text-[13px]" />
+            <input id="attendance-date" name="date" aria-label="Attendance date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input w-auto py-2.5 text-[13px]" />
           ) : (
-            <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="input w-auto py-2.5 text-[13px]" />
+            <input id="attendance-month" name="month" aria-label="Attendance month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="input w-auto py-2.5 text-[13px]" />
           )}
-          <select value={department} onChange={(e) => setDepartment(e.target.value)} className="input w-auto min-w-[155px] py-2.5 text-[13px]">
+          <select id="attendance-department" name="department" aria-label="Department" value={department} onChange={(e) => setDepartment(e.target.value)} className="input w-auto min-w-[155px] py-2.5 text-[13px]">
             <option value="">All departments</option>
             {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
@@ -354,7 +354,7 @@ function EmployeeAttendance({ user }) {
       <Card className="overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
           <SectionTitle title="Attendance history" description="Your recent days at Kodewar Technologies" />
-          <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="input w-auto py-2 text-[12.5px]" />
+          <input id="attendance-history-month" name="history_month" aria-label="Attendance history month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="input w-auto py-2 text-[12.5px]" />
         </div>
         {loading ? (
           <LoadingBlock label="Loading your attendance…" />

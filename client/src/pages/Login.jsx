@@ -237,10 +237,12 @@ export default function Login() {
 
               <form onSubmit={submit} className="space-y-4">
                 <div>
-                  <label className="label">Work email</label>
+                  <label className="label" htmlFor="login-email">Work email</label>
                   <div className="relative">
                     <Mail size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
+                      id="login-email"
+                      name="email"
                       type="email"
                       autoComplete="email"
                       className="input h-12 border-slate-200/80 bg-white/80 pl-10 shadow-sm backdrop-blur-sm transition focus:bg-white"
@@ -252,10 +254,12 @@ export default function Login() {
                 </div>
 
                 <div>
-                  <label className="label">Password</label>
+                  <label className="label" htmlFor="login-password">Password</label>
                   <div className="relative">
                     <Lock size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
+                      id="login-password"
+                      name="password"
                       type={showPassword ? 'text' : 'password'}
                       autoComplete="current-password"
                       className="input h-12 border-slate-200/80 bg-white/80 pl-10 pr-11 shadow-sm backdrop-blur-sm transition focus:bg-white"
@@ -277,6 +281,8 @@ export default function Login() {
                 <div className="flex items-center justify-between pt-0.5">
                   <label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-slate-500">
                     <input
+                      id="login-remember"
+                      name="remember"
                       type="checkbox"
                       checked={remember}
                       onChange={(e) => setRemember(e.target.checked)}
@@ -330,6 +336,9 @@ export default function Login() {
                 </div>
                 <div className="relative">
                   <select
+                    id="login-quick-role"
+                    name="quick_role"
+                    aria-label="Quick role selector"
                     defaultValue=""
                     onChange={(e) => {
                       const selected = QUICK_ROLES.find((r) => r.role === e.target.value);

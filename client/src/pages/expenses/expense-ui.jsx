@@ -167,7 +167,7 @@ export function ReceiptUploader({ files, onFiles, existing = [], removedIds = []
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <label className="label mb-0">
+        <label className="label mb-0" htmlFor="expense-receipts">
           Receipts / invoices <span className="text-rose-500">*</span>
         </label>
         <span className="text-[11px] text-slate-400">PDF, JPG, PNG, WEBP · max {maxMb} MB each</span>
@@ -191,6 +191,8 @@ export function ReceiptUploader({ files, onFiles, existing = [], removedIds = []
         </Button>
         <input
           ref={inputRef}
+          id="expense-receipts"
+          name="receipts"
           type="file"
           multiple
           accept=".pdf,.jpg,.jpeg,.png,.webp"
@@ -438,7 +440,7 @@ export function ExpenseForm({
               {currencies.map((c) => <option key={c} value={c}>{c}</option>)}
             </Select>
             <Field label="Department" hint="Taken from your employee profile." htmlFor="expense-department">
-              <input id="expense-department" className="input bg-slate-50 text-slate-500" value={departmentName || claim?.department_name || 'Not assigned'} readOnly />
+              <input id="expense-department" name="department" className="input bg-slate-50 text-slate-500" value={departmentName || claim?.department_name || 'Not assigned'} readOnly />
             </Field>
             <div className="sm:col-span-2">
               <Textarea label="Purpose / description" required rows={3} value={form.purpose} onChange={(e) => update('purpose', e.target.value)} error={errors.purpose} placeholder="What was this expense for?" />
@@ -710,17 +712,17 @@ export function ExpenseDetailsModal({ open, onClose, expenseId, onChanged, canAp
                   <div className="mt-3 space-y-3">
                     {mode === 'reject' && (
                       <Field label="Rejection reason" required htmlFor="expense-rejection-reason">
-                        <textarea id="expense-rejection-reason" className="input min-h-[80px]" value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder="Explain why this claim is rejected." />
+                        <textarea id="expense-rejection-reason" name="rejection_reason" className="input min-h-[80px]" value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder="Explain why this claim is rejected." />
                       </Field>
                     )}
                     {mode === 'clarify' && (
                       <Field label="Clarification message" required htmlFor="expense-clarification-message">
-                        <textarea id="expense-clarification-message" className="input min-h-[80px]" value={comments} onChange={(e) => setComments(e.target.value)} placeholder="What does the employee need to clarify?" />
+                        <textarea id="expense-clarification-message" name="clarification_message" className="input min-h-[80px]" value={comments} onChange={(e) => setComments(e.target.value)} placeholder="What does the employee need to clarify?" />
                       </Field>
                     )}
                     {mode === 'approve' && (
                       <Field label="Approval comments" hint="Optional note for the employee." htmlFor="expense-approval-comments">
-                        <textarea id="expense-approval-comments" className="input min-h-[64px]" value={comments} onChange={(e) => setComments(e.target.value)} placeholder="Looks good." />
+                        <textarea id="expense-approval-comments" name="approval_comments" className="input min-h-[64px]" value={comments} onChange={(e) => setComments(e.target.value)} placeholder="Looks good." />
                       </Field>
                     )}
                     <div className="flex justify-end gap-2">

@@ -192,9 +192,9 @@ export default function Goals() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><Filter size={12} />Target date</span>
-            <input type="date" className="input w-auto py-1.5 text-[12px]" value={filters.from} onChange={(e) => setFilter('from', e.target.value)} />
+            <input id="goal-filter-from" name="from" aria-label="Target date from" type="date" className="input w-auto py-1.5 text-[12px]" value={filters.from} onChange={(e) => setFilter('from', e.target.value)} />
             <span className="text-[11px] text-slate-400">to</span>
-            <input type="date" className="input w-auto py-1.5 text-[12px]" value={filters.to} onChange={(e) => setFilter('to', e.target.value)} />
+            <input id="goal-filter-to" name="to" aria-label="Target date to" type="date" className="input w-auto py-1.5 text-[12px]" value={filters.to} onChange={(e) => setFilter('to', e.target.value)} />
             <span className="ml-auto text-[11px] text-slate-400">{total} goal{total === 1 ? '' : 's'}</span>
           </div>
         </div>

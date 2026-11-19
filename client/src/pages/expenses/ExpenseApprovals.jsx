@@ -93,7 +93,7 @@ export default function ExpenseApprovals() {
           />
           <div className="relative w-full sm:w-64">
             <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input className="input py-2 pl-10 text-[12.5px]" placeholder="Search employee or claim…" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input id="expense-approvals-search" name="search" aria-label="Search employee or claim" className="input py-2 pl-10 text-[12.5px]" placeholder="Search employee or claim…" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
         </div>
       </Card>

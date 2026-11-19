@@ -118,8 +118,8 @@ export default function Settings() {
                 <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Input label="Full name" icon={UserRound} value={profile.name} onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))} />
                   <Input label="Email address" icon={Mail} type="email" value={profile.email} onChange={(e) => setProfile((p) => ({ ...p, email: e.target.value }))} />
-                  <Field label="Employee ID"><Input value={employee?.code || '—'} disabled /></Field>
-                  <Field label="Department"><Input value={employee?.department || '—'} disabled /></Field>
+                  <Field label="Employee ID" htmlFor="settings-employee-id"><Input id="settings-employee-id" name="employee_id" value={employee?.code || '—'} disabled /></Field>
+                  <Field label="Department" htmlFor="settings-department"><Input id="settings-department" name="department" value={employee?.department || '—'} disabled /></Field>
                 </div>
                 <div className="mt-4">
                   <p className="label">Avatar colour</p>
