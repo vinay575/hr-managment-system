@@ -20,8 +20,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api, fmtDate } from '../../lib/api';
-import { Badge, Button, Card, EmptyState, Input, LoadingBlock, SectionTitle, Select } from '../../components/ui';
-import { UploadDocumentModal } from '../documents/document-ui';
+import { Badge, Button, Card, EmptyState, Input, LoadingBlock, Modal, SectionTitle, Select } from '../../components/ui';
 
 const CATEGORIES = ['PERSONAL INFORMATION', 'DOCUMENT VERIFICATION', 'EMPLOYMENT FORMALITIES'];
 
@@ -37,7 +36,8 @@ export default function OnboardingDetail() {
   const [data, setData] = useState(null);
   const [activeTab, setActiveTab] = useState('checklist'); // checklist | personal_info | documents | bank
   const [uploadModal, setUploadModal] = useState({ open: false, taskId: null, docType: 'identity_proof', title: '' });
-  const [categories, setCategories] = useState([]);
+  const [fileToUpload, setFileToUpload] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [submittingInfo, setSubmittingInfo] = useState(false);
 
   // Form state
@@ -97,13 +97,6 @@ export default function OnboardingDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  useEffect(() => {
-    api
-      .get('/documents/categories')
-      .then((res) => setCategories(res.data || []))
-      .catch(() => {});
-  }, []);
-
   const record = data?.record;
   const tasks = data?.tasks || [];
   const documents = data?.documents || [];
@@ -142,6 +135,34 @@ export default function OnboardingDetail() {
       toast.error(err.message);
     } finally {
       setSubmittingInfo(false);
+    }
+  };
+
+  const handleUploadDoc = async () => {
+    if (!fileToUpload) return toast.error('Please choose a file to upload.');
+    setUploading(true);
+    const form = new FormData();
+    form.append('file', fileToUpload);
+    form.append('doc_type', uploadModal.docType);
+    form.append('title', uploadModal.title || fileToUpload.name);
+    if (uploadModal.taskId) form.append('task_id', uploadModal.taskId);
+
+    try {
+      const res = await fetch(`/api/onboarding/records/${id}/documents`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('aurora_token')}` },
+        body: form,
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Upload failed');
+      toast.success('Document uploaded successfully.');
+      setUploadModal({ open: false, taskId: null, docType: 'identity_proof', title: '' });
+      setFileToUpload(null);
+      load();
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -427,8 +448,8 @@ export default function OnboardingDetail() {
                 setUploadModal({
                   open: true,
                   taskId: null,
-                  docType: 'other',
-                  title: '',
+                  docType: 'identity_proof',
+                  title: 'New Document Upload',
                 })
               }
             >
@@ -538,18 +559,60 @@ export default function OnboardingDetail() {
         </Card>
       )}
 
-      {/* Shared central upload form — same screen as Documents → Upload document */}
-      <UploadDocumentModal
+      {/* Upload Modal */}
+      <Modal
         open={uploadModal.open}
-        onClose={() => setUploadModal((prev) => ({ ...prev, open: false }))}
-        onSaved={load}
-        categories={categories}
-        fixedEmployeeId={record?.employee_id || null}
-        onboardingRecordId={id}
-        onboardingTaskId={uploadModal.taskId}
-        onboardingDocType={uploadModal.docType}
-        onboardingTitle={uploadModal.title}
-      />
+        onClose={() => setUploadModal({ ...uploadModal, open: false })}
+        title="Upload Verification Document"
+        subtitle="Accepted formats: PDF, JPG, PNG, DOC, DOCX up to 10MB."
+        icon={Upload}
+        size="md"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setUploadModal({ ...uploadModal, open: false })}>
+              Cancel
+            </Button>
+            <Button variant="primary" loading={uploading} icon={CheckCircle2} onClick={handleUploadDoc}>
+              Upload Document
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <Select
+            label="Document Category"
+            value={uploadModal.docType}
+            onChange={(e) => setUploadModal({ ...uploadModal, docType: e.target.value })}
+          >
+            <option value="identity_proof">Identity Proof (Aadhaar / Passport / SSN)</option>
+            <option value="pan_card">PAN Card / Tax ID</option>
+            <option value="address_proof">Address Proof (Utility Bill / Lease)</option>
+            <option value="educational_certificate">Educational Certificate</option>
+            <option value="previous_employment">Previous Employment Relieving / Payslips</option>
+            <option value="bank_proof">Bank Proof (Cancelled Cheque / Statement)</option>
+            <option value="signed_offer_letter">Signed Offer Letter</option>
+            <option value="employment_agreement">Employment Agreement</option>
+            <option value="photograph">Photograph</option>
+            <option value="other">Other Official Document</option>
+          </Select>
+          <Input
+            label="Document Title"
+            value={uploadModal.title}
+            onChange={(e) => setUploadModal({ ...uploadModal, title: e.target.value })}
+            placeholder="e.g. Passport Copy"
+          />
+          <div>
+            <label htmlFor="onboarding-document-file" className="block text-[12px] font-semibold text-slate-700 mb-1.5">Select File</label>
+            <input
+              id="onboarding-document-file"
+              name="document_file"
+              type="file"
+              onChange={(e) => setFileToUpload(e.target.files[0])}
+              className="w-full text-[13px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[12px] file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

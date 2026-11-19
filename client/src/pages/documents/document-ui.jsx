@@ -39,54 +39,6 @@ export const DOC_STATUS = {
 
 export const statusMeta = (status) => DOC_STATUS[status] || DOC_STATUS.pending;
 
-/**
- * Onboarding documents carry a fixed document type, while the central
- * document module uses configurable categories. These maps let one upload form
- * serve both flows without creating duplicate upload screens.
- */
-export const ONBOARDING_DOC_TYPE_TO_SLUG = {
-  identity_proof: 'national-id',
-  pan_card: 'pan-card',
-  address_proof: 'address-proof',
-  photograph: 'photograph',
-  educational_certificate: 'graduation-certificate',
-  previous_employment: 'experience-letter',
-  bank_proof: 'bank-proof',
-  signed_offer_letter: 'offer-letter',
-  employment_agreement: 'employment-agreement',
-  other: 'other',
-};
-
-const CATEGORY_SLUG_TO_ONBOARDING_TYPE = {
-  'national-id': 'identity_proof',
-  passport: 'identity_proof',
-  'driving-license': 'identity_proof',
-  'voter-id': 'identity_proof',
-  'pan-card': 'pan_card',
-  'address-proof': 'address_proof',
-  'utility-bill': 'address_proof',
-  'rental-agreement': 'address_proof',
-  photograph: 'photograph',
-  'class-10-certificate': 'educational_certificate',
-  'class-12-certificate': 'educational_certificate',
-  'graduation-certificate': 'educational_certificate',
-  'post-graduation-certificate': 'educational_certificate',
-  'other-education-certificate': 'educational_certificate',
-  'experience-letter': 'previous_employment',
-  'relieving-letter': 'previous_employment',
-  'bank-proof': 'bank_proof',
-  'cancelled-cheque': 'bank_proof',
-  'bank-statement': 'bank_proof',
-  'offer-letter': 'signed_offer_letter',
-  'employment-agreement': 'employment_agreement',
-  'appointment-letter': 'employment_agreement',
-  'employee-contract': 'employment_agreement',
-};
-
-export function onboardingDocTypeForCategory(category) {
-  return CATEGORY_SLUG_TO_ONBOARDING_TYPE[category?.slug] || 'other';
-}
-
 export function StatusPill({ status, label }) {
   const meta = statusMeta(status);
   const Icon = meta.icon;
@@ -170,45 +122,20 @@ const EMPTY_FORM = {
   description: '',
 };
 
-export function UploadDocumentModal({
-  open,
-  onClose,
-  onSaved,
-  employees = [],
-  categories = [],
-  fixedEmployeeId = null,
-  defaultCategoryId = '',
-  onboardingRecordId = null,
-  onboardingTaskId = null,
-  onboardingDocType = 'other',
-  onboardingTitle = '',
-}) {
+export function UploadDocumentModal({ open, onClose, onSaved, employees = [], categories = [], fixedEmployeeId = null, defaultCategoryId = '' }) {
   const toast = useToast();
   const [form, setForm] = useState(EMPTY_FORM);
   const [file, setFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef(null);
-  const isOnboarding = Boolean(onboardingRecordId);
 
   useEffect(() => {
     if (!open) return;
-    const slug = ONBOARDING_DOC_TYPE_TO_SLUG[onboardingDocType] || 'other';
-    const categoryId =
-      defaultCategoryId ||
-      (isOnboarding
-        ? categories.find((c) => c.slug === slug && Number(c.is_active))?.id || ''
-        : '');
-    setForm({
-      ...EMPTY_FORM,
-      employeeId: fixedEmployeeId ? String(fixedEmployeeId) : '',
-      categoryId: categoryId ? String(categoryId) : '',
-      name: isOnboarding ? onboardingTitle || '' : '',
-    });
+    setForm({ ...EMPTY_FORM, employeeId: fixedEmployeeId ? String(fixedEmployeeId) : '', categoryId: defaultCategoryId || '' });
     setFile(null);
     setError('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, fixedEmployeeId, defaultCategoryId, isOnboarding, onboardingDocType, onboardingTitle, categories]);
+  }, [open, fixedEmployeeId, defaultCategoryId]);
 
   const activeCategories = useMemo(() => categories.filter((c) => Number(c.is_active)), [categories]);
   const grouped = useMemo(() => {
@@ -226,31 +153,9 @@ export function UploadDocumentModal({
 
   const submit = async () => {
     setError('');
-    if (!isOnboarding && !form.employeeId) return setError('Choose the employee this document belongs to.');
+    if (!form.employeeId) return setError('Choose the employee this document belongs to.');
     if (!form.categoryId) return setError('Choose a document category.');
     if (!file) return setError('Select a file to upload.');
-
-    if (isOnboarding) {
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('doc_type', onboardingDocTypeForCategory(selectedCategory) || onboardingDocType || 'other');
-      fd.append('title', form.name.trim() || selectedCategory?.name || file.name);
-      if (onboardingTaskId) fd.append('task_id', onboardingTaskId);
-
-      setSaving(true);
-      try {
-        const res = await api.upload(`/onboarding/records/${onboardingRecordId}/documents`, fd);
-        toast.success(res.message || 'Document uploaded.');
-        onSaved?.(res);
-        onClose?.();
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setSaving(false);
-      }
-      return;
-    }
-
     if (selectedCategory?.requires_expiry && !form.expiryDate) return setError('This document type requires an expiry date.');
     if (form.issueDate && form.expiryDate && form.expiryDate < form.issueDate) return setError('Expiry date cannot be before the issue date.');
 
@@ -282,11 +187,7 @@ export function UploadDocumentModal({
       open={open}
       onClose={onClose}
       title="Upload document"
-      subtitle={
-        isOnboarding
-          ? 'Added to the onboarding checklist and the employee’s central document history.'
-          : 'Files are stored privately and every access is authenticated.'
-      }
+      subtitle="Files are stored privately and every access is authenticated."
       icon={UploadCloud}
       size="lg"
       footer={
@@ -303,7 +204,7 @@ export function UploadDocumentModal({
           </div>
         )}
 
-        {!fixedEmployeeId && !isOnboarding && (
+        {!fixedEmployeeId && (
           <Select label="Employee" required value={form.employeeId} onChange={(e) => update('employeeId', e.target.value)}>
             <option value="">Select an employee…</option>
             {employees.map((emp) => (
@@ -364,21 +265,17 @@ export function UploadDocumentModal({
         </Field>
 
         <Input label="Document title" value={form.name} maxLength={200} onChange={(e) => update('name', e.target.value)} placeholder="e.g. Aadhaar Card" />
-        {!isOnboarding && (
-          <>
-            <Input label="Document number (optional)" value={form.documentNumber} maxLength={120} onChange={(e) => update('documentNumber', e.target.value)} />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input label="Issue date (optional)" type="date" value={form.issueDate} onChange={(e) => update('issueDate', e.target.value)} />
-              <Input
-                label={selectedCategory?.requires_expiry ? 'Expiry date *' : 'Expiry date (optional)'}
-                type="date"
-                value={form.expiryDate}
-                onChange={(e) => update('expiryDate', e.target.value)}
-              />
-            </div>
-            <Textarea label="Notes (optional)" rows={2} maxLength={2000} value={form.description} onChange={(e) => update('description', e.target.value)} />
-          </>
-        )}
+        <Input label="Document number (optional)" value={form.documentNumber} maxLength={120} onChange={(e) => update('documentNumber', e.target.value)} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Input label="Issue date (optional)" type="date" value={form.issueDate} onChange={(e) => update('issueDate', e.target.value)} />
+          <Input
+            label={selectedCategory?.requires_expiry ? 'Expiry date *' : 'Expiry date (optional)'}
+            type="date"
+            value={form.expiryDate}
+            onChange={(e) => update('expiryDate', e.target.value)}
+          />
+        </div>
+        <Textarea label="Notes (optional)" rows={2} maxLength={2000} value={form.description} onChange={(e) => update('description', e.target.value)} />
       </div>
     </Modal>
   );
