@@ -249,7 +249,7 @@ export default function DocumentReports() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-2">
         <Card className="p-5">
           <SectionTitle
             title="Rejected documents"
