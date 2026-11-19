@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import {
   BellRing,
   CheckCheck,
-  CheckCircle2,
+  Clock3,
   Megaphone,
   Paperclip,
 } from 'lucide-react';
@@ -86,7 +86,8 @@ export default function MyAnnouncements() {
   const published = data.data?.length || 0;
   const acknowledged = (data.data || []).filter((row) => row.acknowledged_at).length;
   const requiresAck = (data.data || []).filter((row) => Number(row.requires_acknowledgment)).length;
-  const completion = requiresAck ? Math.round((acknowledged / requiresAck) * 100) : 100;
+  const pendingAck = Number(data.pendingAcknowledgment || 0);
+  const pendingShare = requiresAck ? Math.round((pendingAck / requiresAck) * 100) : 0;
 
   return (
     <div className="space-y-5">
@@ -106,8 +107,15 @@ export default function MyAnnouncements() {
           <div><p className="text-[10.5px] font-semibold uppercase tracking-wide text-slate-400">Unread</p><p className="text-[20px] font-extrabold text-ink-900">{data.unread || 0}</p></div>
         </Card>
         <Card className="flex items-center gap-3 p-4">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><CheckCircle2 size={18} /></span>
-          <div className="min-w-0 flex-1"><p className="text-[10.5px] font-semibold uppercase tracking-wide text-slate-400">Pending acknowledgment</p><p className="text-[20px] font-extrabold text-ink-900">{data.pendingAcknowledgment || 0}</p><Progress value={completion} tone="emerald" className="mt-1" height="h-1" /></div>
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-amber-50 text-amber-600"><Clock3 size={18} /></span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-slate-400">Pending acknowledgment</p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-[20px] font-extrabold text-ink-900">{pendingAck}</p>
+              <p className="text-[10px] text-slate-400">{acknowledged} of {requiresAck} acknowledged</p>
+            </div>
+            <Progress value={pendingShare} tone="amber" className="mt-1" height="h-1" />
+          </div>
         </Card>
       </div>
 
