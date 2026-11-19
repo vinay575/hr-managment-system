@@ -51,7 +51,7 @@ export default function MyExpenses() {
   const [data, setData] = useState({ data: [], stats: {}, page: 1, pages: 0, total: 0 });
   const [categories, setCategories] = useState([]);
   const [settings, setSettings] = useState({});
-  const [currencies, setCurrencies] = useState(['USD']);
+  const [currencies, setCurrencies] = useState(['INR']);
   const [departmentName, setDepartmentName] = useState('');
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('');
@@ -84,7 +84,7 @@ export default function MyExpenses() {
       const [catRes, me] = await Promise.all([api.get('/expenses/categories'), api.get('/auth/me')]);
       setCategories(catRes.data || []);
       setSettings(catRes.settings || {});
-      setCurrencies(catRes.currencies || ['USD']);
+      setCurrencies(catRes.currencies || ['INR']);
       setDepartmentName(me.employee?.department || '');
     } catch {
       /* categories are non-critical for rendering */

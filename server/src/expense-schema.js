@@ -39,7 +39,7 @@ export const EXPENSE_SCHEMA = [
     expense_date DATE NOT NULL,
     amount DECIMAL(12,2) NOT NULL,
     approved_amount DECIMAL(12,2) NULL,
-    currency CHAR(3) NOT NULL DEFAULT 'USD',
+    currency CHAR(3) NOT NULL DEFAULT 'INR',
     purpose TEXT NOT NULL,
     project_name VARCHAR(150) NULL,
     client_name VARCHAR(150) NULL,
@@ -152,7 +152,7 @@ export const DEFAULT_EXPENSE_CATEGORIES = [
 ];
 
 export const DEFAULT_EXPENSE_SETTINGS = {
-  default_currency: 'USD',
+  default_currency: 'INR',
   receipt_threshold_amount: '0',
   max_attachment_mb: '10',
   max_attachments_per_expense: '5',

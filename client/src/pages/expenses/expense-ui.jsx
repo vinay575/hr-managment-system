@@ -83,12 +83,12 @@ export function ReimbursementStatusBadge({ status, className }) {
   return <Badge tone={meta.tone} className={className}>{meta.label}</Badge>;
 }
 
-export const expenseMoney = (amount, currency = 'USD') => {
+export const expenseMoney = (amount, currency = 'INR') => {
   const value = Number(amount) || 0;
   try {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: currency || 'USD',
+      currency: currency || 'INR',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
@@ -260,7 +260,7 @@ const blankForm = (settings) => ({
   categoryId: '',
   expenseDate: todayISO(),
   amount: '',
-  currency: settings?.default_currency || 'USD',
+  currency: settings?.default_currency || 'INR',
   purpose: '',
   projectName: '',
   clientName: '',
@@ -275,7 +275,7 @@ export function ExpenseForm({
   onSaved,
   categories = [],
   settings = {},
-  currencies = ['USD'],
+  currencies = ['INR'],
   claim = null,
   departmentName = '',
 }) {
@@ -306,7 +306,7 @@ export function ExpenseForm({
             categoryId: String(c.category_id || ''),
             expenseDate: String(c.expense_date || '').slice(0, 10),
             amount: String(c.amount ?? ''),
-            currency: c.currency || 'USD',
+            currency: c.currency || 'INR',
             purpose: c.purpose || '',
             projectName: c.project_name || '',
             clientName: c.client_name || '',
@@ -326,7 +326,7 @@ export function ExpenseForm({
 
   useEffect(() => {
     if (!open || claim?.id || dirtyRef.current) return;
-    setForm((prev) => ({ ...prev, currency: settings?.default_currency || 'USD' }));
+    setForm((prev) => ({ ...prev, currency: settings?.default_currency || 'INR' }));
   }, [open, claim?.id, settings?.default_currency]);
 
   const update = (key, value) => {

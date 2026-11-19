@@ -64,7 +64,7 @@ export function generateOfferLetterPdf(offer) {
       doc.font('Helvetica').text(offer.job_title || 'N/A', col1 + 80, rowY);
 
       doc.font('Helvetica-Bold').text('Annual Salary:', col2, rowY);
-      doc.font('Helvetica').text(offer.annual_salary ? `$${Number(offer.annual_salary).toLocaleString()}` : '$0', col2 + 90, rowY);
+      doc.font('Helvetica').text(offer.annual_salary ? `INR ${Number(offer.annual_salary).toLocaleString('en-IN')}` : 'INR 0', col2 + 90, rowY);
 
       rowY += 22;
       doc.font('Helvetica-Bold').text('Department:', col1, rowY);

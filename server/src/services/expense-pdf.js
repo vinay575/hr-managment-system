@@ -57,8 +57,8 @@ export function generateExpenseStatementPdf({
       doc.text('Reimbursed', left + 300, y + 12);
       doc.fontSize(14).fillColor('#1e293b');
       doc.text(String(claims.length), left + 16, y + 30);
-      doc.text(`$${money(approvedTotal)}`, left + 150, y + 30);
-      doc.text(`$${money(paidTotal)}`, left + 300, y + 30);
+      doc.text(`INR ${money(approvedTotal)}`, left + 150, y + 30);
+      doc.text(`INR ${money(paidTotal)}`, left + 300, y + 30);
       y += 78;
 
       const columns = [

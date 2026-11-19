@@ -1185,7 +1185,7 @@ router.post(
       if (isFutureDate(expenseDate)) throw new ApiError(400, 'Expense date cannot be in the future.');
       const categoryId = Number(req.body?.categoryId);
       if (!categoryId) throw new ApiError(400, 'Expense category is required.');
-      const currency = validCurrency(req.body?.currency || settings.default_currency || 'USD');
+      const currency = validCurrency(req.body?.currency || settings.default_currency || 'INR');
       const purpose = cleanText(req.body?.purpose, 2000);
       if (!purpose) throw new ApiError(400, 'Purpose / description is required.');
 

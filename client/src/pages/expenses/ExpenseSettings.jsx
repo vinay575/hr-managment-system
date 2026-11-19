@@ -67,7 +67,7 @@ export default function ExpenseSettings() {
           <Card className="p-5">
             <SectionTitle title="Claim defaults" description="Applied to every new expense claim" />
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Select label="Default currency" value={settings.default_currency || 'USD'} onChange={(e) => update('default_currency', e.target.value)}>
+              <Select label="Default currency" value={settings.default_currency || 'INR'} onChange={(e) => update('default_currency', e.target.value)}>
                 {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
               </Select>
               <Input

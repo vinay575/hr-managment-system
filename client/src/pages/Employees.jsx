@@ -484,7 +484,7 @@ function EmployeeForm({ open, onClose, editing, departments, onSaved }) {
               {STATUSES.map((s) => <option key={s} value={s}>{capitalize(s)}</option>)}
             </Select>
             <Input label="Start date" type="date" required value={form.join_date} onChange={set('join_date')} />
-            <Input label="Annual salary (USD)" type="number" min="0" step="1000" value={form.salary} onChange={set('salary')} placeholder="95000" />
+            <Input label="Annual salary (INR)" type="number" min="0" step="1000" value={form.salary} onChange={set('salary')} placeholder="950000" />
           </div>
         </div>
 

@@ -205,7 +205,7 @@ router.post(
         <div style="margin: 20px 0; padding: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
           <p style="margin: 0 0 8px 0;"><strong>Position:</strong> ${offer.job_title}</p>
           <p style="margin: 0 0 8px 0;"><strong>Joining Date:</strong> ${offer.joining_date ? String(offer.joining_date).slice(0, 10) : 'TBD'}</p>
-          <p style="margin: 0 0 8px 0;"><strong>Annual CTC / Salary:</strong> $${Number(offer.annual_salary).toLocaleString()}</p>
+          <p style="margin: 0 0 8px 0;"><strong>Annual CTC / Salary:</strong> INR ${Number(offer.annual_salary).toLocaleString('en-IN')}</p>
           <p style="margin: 0;"><strong>Offer Validity:</strong> ${offer.expiry_date ? String(offer.expiry_date).slice(0, 10) : '14 Days'}</p>
         </div>
         <div style="margin: 25px 0; text-align: center;">
