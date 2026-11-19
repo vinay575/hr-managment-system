@@ -59,4 +59,12 @@ export const DEFAULT_ANNOUNCEMENT_CATEGORIES = ['general', 'hr', 'holiday', 'pol
 
 export const DEFAULT_ANNOUNCEMENT_STATUSES = ['draft', 'scheduled', 'published', 'archived'];
 
-export const DEFAULT_ANNOUNCEMENT_AUDIENCES = ['everyone', 'department'];
+export const DEFAULT_ANNOUNCEMENT_AUDIENCES = ['everyone', 'roles', 'department'];
+
+/*
+ * Role audiences reuse `department_id` as a bitmask because the managed
+ * application account cannot alter tables. Bits: employee=1, hr=2,
+ * administration=4, ceo=8, super_admin=16. The column is only read as a mask
+ * when `audience = 'roles'`; department announcements still store a real
+ * department id there.
+ */

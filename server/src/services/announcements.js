@@ -22,10 +22,71 @@ export const ANNOUNCEMENT_CATEGORY_KEYS = ANNOUNCEMENT_CATEGORIES.map((c) => c.k
 
 export const ANNOUNCEMENT_AUDIENCES = [
   { key: 'everyone', label: 'Everyone' },
+  { key: 'roles', label: 'Specific Roles' },
   { key: 'department', label: 'Specific Department' },
 ];
 
 export const ANNOUNCEMENT_AUDIENCE_KEYS = ANNOUNCEMENT_AUDIENCES.map((a) => a.key);
+
+/**
+ * Role-based audiences.
+ *
+ * The managed application account cannot alter tables, so the selected role
+ * set is packed into the existing `department_id` column as a bitmask. It is
+ * only read when `audience = 'roles'`; department announcements keep using
+ * the same column as a real department id.
+ */
+export const ANNOUNCEMENT_ROLE_OPTIONS = [
+  { key: 'employee', label: 'Employees' },
+  { key: 'hr', label: 'HR' },
+  { key: 'administration', label: 'Administration' },
+  { key: 'ceo', label: 'CEO' },
+  { key: 'super_admin', label: 'Super Admin' },
+];
+
+export const ANNOUNCEMENT_ROLE_KEYS = ANNOUNCEMENT_ROLE_OPTIONS.map((r) => r.key);
+
+const ROLE_BITS = { employee: 1, hr: 2, administration: 4, ceo: 8, super_admin: 16 };
+
+export const roleLabel = (key) =>
+  ANNOUNCEMENT_ROLE_OPTIONS.find((r) => r.key === key)?.label || String(key || '');
+
+export function roleBit(key) {
+  return ROLE_BITS[key] || 0;
+}
+
+export function rolesToMask(roles = []) {
+  return (Array.isArray(roles) ? roles : String(roles || '').split(','))
+    .map((r) => String(r).trim())
+    .filter((r) => ANNOUNCEMENT_ROLE_KEYS.includes(r))
+    .reduce((mask, role) => mask | ROLE_BITS[role], 0);
+}
+
+export function maskToRoles(mask) {
+  const value = Number(mask) || 0;
+  return ANNOUNCEMENT_ROLE_KEYS.filter((role) => (value & ROLE_BITS[role]) !== 0);
+}
+
+/** Accept an array, JSON string or comma-separated list of role keys. */
+export function normalizeAudienceRoles(value) {
+  let list = value;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed.startsWith('[')) {
+      try {
+        list = JSON.parse(trimmed);
+      } catch {
+        list = trimmed.replace(/[[\]"]/g, '').split(',');
+      }
+    } else {
+      list = trimmed.split(',');
+    }
+  }
+  const roles = (Array.isArray(list) ? list : [])
+    .map((r) => String(r).trim())
+    .filter((r) => ANNOUNCEMENT_ROLE_KEYS.includes(r));
+  return [...new Set(roles)];
+}
 
 export const ANNOUNCEMENT_STATUSES = [
   { key: 'draft', label: 'Draft', tone: 'slate' },
@@ -44,6 +105,10 @@ export const statusLabel = (key) =>
 
 export const audienceLabel = (row) => {
   if (!row || row.audience === 'everyone') return 'Everyone';
+  if (row.audience === 'roles') {
+    const roles = maskToRoles(row.department_id);
+    return roles.length ? `Roles: ${roles.map(roleLabel).join(', ')}` : 'Specific roles';
+  }
   return row.department_name ? `Department · ${row.department_name}` : 'Specific department';
 };
 
@@ -99,6 +164,18 @@ export function normalizeAudience(value) {
 
 /** Target employees for an announcement (used by feed, reports and notifications). */
 export function audienceClause(announcement, alias = 'e') {
+  if (announcement?.audience === 'roles') {
+    const roles = maskToRoles(announcement.department_id);
+    if (!roles.length) return { sql: '1 = 0', params: [] };
+    return {
+      sql: `${alias}.status <> 'inactive' AND EXISTS (
+        SELECT 1 FROM hrm_users ur
+        WHERE ur.employee_id = ${alias}.id AND ur.is_active = 1
+          AND ur.role IN (${roles.map(() => '?').join(',')})
+      )`,
+      params: roles,
+    };
+  }
   if (announcement?.audience === 'department') {
     return { sql: `${alias}.status <> 'inactive' AND ${alias}.department_id = ?`, params: [Number(announcement.department_id) || -1] };
   }
@@ -126,12 +203,24 @@ export async function targetEmployees(announcement) {
   }));
 }
 
-export async function isAnnouncementTargeted(announcement, employeeId) {
+export async function isAnnouncementTargeted(announcement, employeeId, role = null) {
   if (!announcement || !employeeId) return false;
   if (announcement.audience === 'everyone') return true;
+  if (announcement.audience === 'roles') {
+    const mask = Number(announcement.department_id) || 0;
+    let effectiveRole = role;
+    if (!effectiveRole) {
+      const [[user]] = await pool.query(
+        'SELECT role FROM hrm_users WHERE employee_id = ? AND is_active = 1 LIMIT 1',
+        [employeeId]
+      );
+      effectiveRole = user?.role || null;
+    }
+    return Boolean(effectiveRole) && (mask & roleBit(effectiveRole)) !== 0;
+  }
   if (announcement.audience !== 'department') return false;
   const [[employee]] = await pool.query(
-    "SELECT id, department_id, status FROM hrm_employees WHERE id = ? LIMIT 1",
+    'SELECT id, department_id, status FROM hrm_employees WHERE id = ? LIMIT 1',
     [employeeId]
   );
   return Boolean(employee) && employee.status !== 'inactive' && Number(employee.department_id) === Number(announcement.department_id);
@@ -214,16 +303,17 @@ export async function publishDueAnnouncements() {
   return { published, notified };
 }
 
-/** CEO announcements must remain company-wide, matching the role policy. */
-export function assertManageScope(req, announcement = null) {
-  if (req.user.role !== 'ceo') return;
-  if (announcement && announcement.audience !== 'everyone') {
-    throw new ApiError(403, 'CEOs can manage company-wide announcements only.');
-  }
+/**
+ * Every role with `announcements.manage` may target any audience, including
+ * the CEO. This lets leadership address HR / Administration directly as well
+ * as the whole company.
+ */
+export function assertManageScope() {
+  return;
 }
 
-export function manageScopeAllowsAudience(req, audience) {
-  return req.user.role !== 'ceo' || audience === 'everyone';
+export function manageScopeAllowsAudience() {
+  return true;
 }
 
 export function statusCounts(rows) {

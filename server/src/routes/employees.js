@@ -14,11 +14,12 @@ router.get(
   '/options',
   requirePermission('employees.view'),
   asyncHandler(async (req, res) => {
+    const includeInactive = String(req.query.includeInactive || '') === '1';
     const [rows] = await pool.query(
-      `SELECT e.id, e.employee_code, e.first_name, e.last_name, e.designation, e.avatar_color, e.department_id,
+      `SELECT e.id, e.employee_code, e.first_name, e.last_name, e.designation, e.status, e.avatar_color, e.department_id,
               d.name AS department_name
        FROM hrm_employees e LEFT JOIN hrm_departments d ON d.id = e.department_id
-       WHERE e.status <> 'inactive' ORDER BY e.first_name`
+       ${includeInactive ? '' : "WHERE e.status <> 'inactive'"} ORDER BY e.first_name`
     );
     res.json({ data: rows });
   })

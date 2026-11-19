@@ -23,6 +23,7 @@ import {
   Avatar,
   Button,
   EmptyState,
+  EmployeePicker,
   Field,
   Input,
   LoadingBlock,
@@ -210,14 +211,14 @@ export function UploadDocumentModal({ open, onClose, onSaved, employees = [], ca
         )}
 
         {!fixedEmployeeId && (
-          <Select label="Employee" required value={form.employeeId} onChange={(e) => update('employeeId', e.target.value)}>
-            <option value="">Select an employee…</option>
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.first_name ? `${emp.first_name} ${emp.last_name}` : emp.name} {emp.employee_code ? `· ${emp.employee_code}` : ''}
-              </option>
-            ))}
-          </Select>
+          <EmployeePicker
+            label="Employee"
+            required
+            value={form.employeeId}
+            onChange={(value) => update('employeeId', value)}
+            employees={employees}
+            hint="Search by name, employee ID, designation or department."
+          />
         )}
 
         <Select

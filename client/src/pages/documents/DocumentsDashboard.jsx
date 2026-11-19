@@ -46,7 +46,7 @@ export default function DocumentsDashboard() {
       const [res, cats, emps] = await Promise.all([
         api.get('/documents/dashboard'),
         api.get('/documents/categories').catch(() => ({ data: [] })),
-        canManage ? api.get('/employees').catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+        canManage ? api.get('/employees/options?includeInactive=1').catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
       ]);
       setData(res);
       setCategories(cats.data || []);

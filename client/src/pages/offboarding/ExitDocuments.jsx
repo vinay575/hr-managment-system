@@ -4,7 +4,7 @@ import { ArrowLeft, CheckCircle2, Download, FileSignature, FileText, Plus } from
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api, fmtDate } from '../../lib/api';
-import { Badge, Button, Card, EmptyState, Input, LoadingBlock, Modal, SectionTitle, Select } from '../../components/ui';
+import { Badge, Button, Card, EmptyState, EmployeePicker, Input, LoadingBlock, Modal, SectionTitle, Select } from '../../components/ui';
 
 export default function ExitDocuments() {
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ export default function ExitDocuments() {
       .finally(() => setLoading(false));
 
     if (manage) {
-      api.get('/employees').then((res) => setEmployees(res.employees || [])).catch(() => {});
+      api.get('/employees/options?includeInactive=1').then((res) => setEmployees(res.data || [])).catch(() => {});
     }
   };
 
@@ -184,19 +184,14 @@ export default function ExitDocuments() {
         }
       >
         <form onSubmit={handleGenerate} className="space-y-4">
-          <Select
+          <EmployeePicker
             label="Select Employee"
             required
             value={form.employee_id}
-            onChange={(e) => setForm({ ...form, employee_id: e.target.value })}
-          >
-            <option value="">-- Choose Employee --</option>
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.first_name} {emp.last_name} ({emp.employee_code}) - {emp.designation}
-              </option>
-            ))}
-          </Select>
+            onChange={(value) => setForm({ ...form, employee_id: value })}
+            employees={employees}
+            hint="Search by name, employee ID, designation or department."
+          />
 
           <Select
             label="Document Format"

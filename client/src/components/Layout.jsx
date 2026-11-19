@@ -243,11 +243,32 @@ function Sidebar({ open, onClose }) {
   const navigate = useNavigate();
   const toast = useToast();
   const location = useLocation();
+  const canViewAllLeaves = can('leaves.view_all');
+  const [pendingLeaves, setPendingLeaves] = useState(0);
 
   useEffect(() => {
     onClose();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!canViewAllLeaves) {
+      setPendingLeaves(0);
+      return undefined;
+    }
+    let active = true;
+    api
+      .get('/leaves?status=pending')
+      .then((res) => {
+        if (active) setPendingLeaves(Number(res.stats?.pending ?? (res.data || []).length) || 0);
+      })
+      .catch(() => {
+        if (active) setPendingLeaves(0);
+      });
+    return () => {
+      active = false;
+    };
+  }, [canViewAllLeaves, location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -306,7 +327,14 @@ function Sidebar({ open, onClose }) {
                           {isActive && <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-brand-400 to-violet-500" />}
                           <Icon size={18} strokeWidth={isActive ? 2.2 : 1.9} className={clsx('transition-colors', isActive ? 'text-brand-300' : 'text-slate-500 group-hover:text-slate-300')} />
                           <span>{label}</span>
-                          {label === 'Leave requests' && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-amber-400" />}
+                          {label === 'Leave requests' && pendingLeaves > 0 && (
+                            <span
+                              className="ml-auto inline-flex min-w-[18px] items-center justify-center rounded-full bg-amber-400/90 px-1.5 text-[10px] font-bold leading-[16px] text-ink-900"
+                              title={`${pendingLeaves} leave request${pendingLeaves === 1 ? '' : 's'} awaiting review`}
+                            >
+                              {pendingLeaves}
+                            </span>
+                          )}
                         </>
                       )}
                     </NavLink>

@@ -46,7 +46,7 @@ export default function AllDocuments() {
   useEffect(() => {
     api.get('/documents/categories').then((res) => setCategories(res.data || [])).catch(() => {});
     if (canManage) {
-      api.get('/employees').then((res) => setEmployees(res.data || [])).catch(() => {});
+      api.get('/employees/options?includeInactive=1').then((res) => setEmployees(res.data || [])).catch(() => {});
     }
   }, [canManage]);
 

@@ -1,7 +1,7 @@
-import { useEffect, useId } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import clsx from 'clsx';
-import { ChevronLeft, ChevronRight, Inbox, Loader2, Search, X } from 'lucide-react';
+import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Inbox, Loader2, Search, X } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
 /*  Design tokens                                                      */
@@ -185,6 +185,110 @@ function ChevronDownIcon() {
     <svg className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
       <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
     </svg>
+  );
+}
+
+/**
+ * Searchable employee picker.
+ *
+ * Native <select> dropdowns open as an OS popup that can grow past the
+ * surrounding card when there are many employees. This keeps the choices in
+ * a flow-laid panel with its own scroll area, so it always stays inside the
+ * modal/form that contains it.
+ */
+export function EmployeePicker({
+  employees = [],
+  value,
+  onChange,
+  label = 'Employee',
+  required,
+  hint,
+  placeholder = 'Select an employee…',
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const nameOf = (emp) => (emp?.first_name ? `${emp.first_name} ${emp.last_name || ''}`.trim() : emp?.name || '');
+  const selected = employees.find((emp) => String(emp.id) === String(value));
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return employees;
+    return employees.filter((emp) =>
+      [nameOf(emp), emp.employee_code, emp.designation, emp.department_name]
+        .filter(Boolean)
+        .some((field) => String(field).toLowerCase().includes(q))
+    );
+  }, [employees, query]);
+
+  const close = () => {
+    setOpen(false);
+    setQuery('');
+  };
+
+  return (
+    <Field label={label} required={required} hint={hint}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={clsx('input flex items-center justify-between gap-3 text-left', open && 'border-brand-300 ring-4 ring-brand-500/10')}
+      >
+        <span className={clsx('min-w-0 flex-1 truncate', selected ? 'text-ink-800' : 'text-slate-400')}>
+          {selected ? `${nameOf(selected)}${selected.employee_code ? ` · ${selected.employee_code}` : ''}` : placeholder}
+        </span>
+        <ChevronDown size={16} className={clsx('shrink-0 text-slate-400 transition-transform', open && 'rotate-180')} />
+      </button>
+
+      {open && (
+        <div className="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-100 p-2">
+            <div className="relative">
+              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Escape' && close()}
+                placeholder="Search name, ID, designation or department…"
+                className="input h-9 pl-9 text-[12.5px]"
+              />
+            </div>
+          </div>
+          <div className="max-h-52 overflow-y-auto p-1" role="listbox">
+            {filtered.length ? (
+              filtered.map((emp) => {
+                const active = String(emp.id) === String(value);
+                return (
+                  <button
+                    key={emp.id}
+                    type="button"
+                    role="option"
+                    aria-selected={active}
+                    onClick={() => {
+                      onChange?.(String(emp.id));
+                      close();
+                    }}
+                    className={clsx('flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition', active ? 'bg-brand-50' : 'hover:bg-slate-50')}
+                  >
+                    <Avatar name={nameOf(emp)} color={emp.avatar_color || 'indigo'} size="sm" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[12.5px] font-semibold text-ink-900">{nameOf(emp)}</span>
+                      <span className="block truncate text-[10.5px] text-slate-400">
+                        {[emp.employee_code, emp.designation, emp.department_name].filter(Boolean).join(' · ') || 'No details'}
+                      </span>
+                    </span>
+                    {active && <CheckCircle2 size={15} className="shrink-0 text-brand-600" />}
+                  </button>
+                );
+              })
+            ) : (
+              <p className="px-3 py-6 text-center text-[12px] text-slate-400">No matching employees</p>
+            )}
+          </div>
+        </div>
+      )}
+    </Field>
   );
 }
 

@@ -10,6 +10,7 @@ import { buildStorageKey, putDocument, getDocumentStream, deleteDocumentFile } f
 import {
   ANNOUNCEMENT_CATEGORIES,
   ANNOUNCEMENT_AUDIENCES,
+  ANNOUNCEMENT_ROLE_OPTIONS,
   ANNOUNCEMENT_STATUSES,
   ackStats,
   assertManageScope,
@@ -18,8 +19,12 @@ import {
   flag,
   isAnnouncementTargeted,
   manageScopeAllowsAudience,
+  maskToRoles,
   normalizeAudience,
+  normalizeAudienceRoles,
   normalizeCategory,
+  roleBit,
+  rolesToMask,
   notifyAnnouncement,
   parsePublishAt,
   publishDueAnnouncements,
@@ -60,12 +65,23 @@ const ANNOUNCEMENT_SELECT = `
     CASE
       WHEN a.audience = 'everyone' THEN
         (SELECT COUNT(*) FROM hrm_employees e WHERE e.status <> 'inactive')
-      WHEN a.department_id IS NOT NULL THEN
+      WHEN a.audience = 'roles' THEN
+        (SELECT COUNT(DISTINCT e.id)
+         FROM hrm_employees e
+         JOIN hrm_users ur ON ur.employee_id = e.id AND ur.is_active = 1
+         WHERE e.status <> 'inactive' AND (
+           ((a.department_id & 1) <> 0 AND ur.role = 'employee') OR
+           ((a.department_id & 2) <> 0 AND ur.role = 'hr') OR
+           ((a.department_id & 4) <> 0 AND ur.role = 'administration') OR
+           ((a.department_id & 8) <> 0 AND ur.role = 'ceo') OR
+           ((a.department_id & 16) <> 0 AND ur.role = 'super_admin')
+         ))
+      WHEN a.audience = 'department' AND a.department_id IS NOT NULL THEN
         (SELECT COUNT(*) FROM hrm_employees e WHERE e.status <> 'inactive' AND e.department_id = a.department_id)
       ELSE 0
     END AS target_count
   FROM announcements a
-  LEFT JOIN hrm_departments d ON d.id = a.department_id
+  LEFT JOIN hrm_departments d ON d.id = a.department_id AND a.audience = 'department'
   LEFT JOIN hrm_users u ON u.id = a.created_by
 `;
 
@@ -76,6 +92,7 @@ function decorate(row) {
     category_label: ANNOUNCEMENT_CATEGORIES.find((c) => c.key === row.category)?.label || 'General',
     status_label: ANNOUNCEMENT_STATUSES.find((s) => s.key === row.status)?.label || 'Draft',
     audience_label: audienceLabel(row),
+    audience_roles: row.audience === 'roles' ? maskToRoles(row.department_id) : [],
     has_attachment: Boolean(row.attachment_key),
   };
 }
@@ -105,15 +122,23 @@ function validatePayload(req, { existing = null } = {}) {
   if (!audience) throw new ApiError(400, 'Choose a valid audience.');
 
   if (!manageScopeAllowsAudience(req, audience)) {
-    throw new ApiError(403, 'CEOs can publish company-wide announcements only.');
+    throw new ApiError(403, 'You cannot publish an announcement for that audience.');
   }
 
   let departmentId = null;
+  let roles = [];
   if (audience === 'department') {
     departmentId = Number(body.departmentId ?? body.department_id);
     if (!Number.isInteger(departmentId) || departmentId <= 0) {
       throw new ApiError(400, 'Choose the department this announcement is for.');
     }
+  } else if (audience === 'roles') {
+    roles = normalizeAudienceRoles(body.roles ?? body.audienceRoles ?? body.audience_roles);
+    if (!roles.length) {
+      throw new ApiError(400, 'Choose at least one role for this announcement.');
+    }
+    // Packed role bitmask; only interpreted when audience = 'roles'.
+    departmentId = rolesToMask(roles);
   }
 
   const requested = String(body.publishMode || body.publish_mode || body.status || '').toLowerCase();
@@ -134,6 +159,7 @@ function validatePayload(req, { existing = null } = {}) {
     content,
     category,
     audience,
+    roles,
     departmentId,
     publishMode,
     publishAt,
@@ -142,8 +168,8 @@ function validatePayload(req, { existing = null } = {}) {
   };
 }
 
-async function assertDepartment(departmentId) {
-  if (!departmentId) return;
+async function assertDepartment(departmentId, audience = 'department') {
+  if (audience !== 'department' || !departmentId) return;
   const [[department]] = await pool.query('SELECT id FROM hrm_departments WHERE id = ? LIMIT 1', [departmentId]);
   if (!department) throw new ApiError(400, 'The selected department no longer exists.');
 }
@@ -224,6 +250,7 @@ router.get(
     res.json({
       categories: ANNOUNCEMENT_CATEGORIES,
       audiences: ANNOUNCEMENT_AUDIENCES,
+      roles: ANNOUNCEMENT_ROLE_OPTIONS,
       statuses: ANNOUNCEMENT_STATUSES,
     });
   })
@@ -321,9 +348,13 @@ router.get(
        LEFT JOIN hrm_notifications n
          ON n.recipient_user_id = ? AND n.dedupe_key = CONCAT('announcement-', a.id)
        WHERE a.status = 'published'
-         AND (a.audience = 'everyone' OR (a.audience = 'department' AND a.department_id = ?))
+         AND (
+           a.audience = 'everyone'
+           OR (a.audience = 'roles' AND (a.department_id & ?) <> 0)
+           OR (a.audience = 'department' AND a.department_id = ?)
+         )
        ORDER BY a.published_at DESC, a.id DESC`,
-      [employeeId, req.user.id, Number(employee.department_id) || -1]
+      [employeeId, req.user.id, roleBit(req.user.role), Number(employee.department_id) || -1]
     );
 
     const data = rows.map(decorate);
@@ -339,7 +370,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const announcement = await loadAnnouncement(req.params.id);
     if (!announcement) throw new ApiError(404, 'Announcement not found.');
-    if (announcement.status !== 'published' || !(await isAnnouncementTargeted(announcement, req.user.employeeId))) {
+    if (announcement.status !== 'published' || !(await isAnnouncementTargeted(announcement, req.user.employeeId, req.user.role))) {
       throw new ApiError(403, 'This announcement is not available to you.');
     }
 
@@ -385,7 +416,7 @@ router.post(
     if (!req.user.employeeId) {
       throw new ApiError(400, 'Your account is not linked to an employee record.');
     }
-    if (!(await isAnnouncementTargeted(announcement, req.user.employeeId))) {
+    if (!(await isAnnouncementTargeted(announcement, req.user.employeeId, req.user.role))) {
       throw new ApiError(403, 'This announcement is not available to you.');
     }
 
@@ -451,7 +482,7 @@ router.post(
   uploadDocumentMiddleware,
   asyncHandler(async (req, res) => {
     const payload = validatePayload(req);
-    await assertDepartment(payload.departmentId);
+    await assertDepartment(payload.departmentId, payload.audience);
     const attachment = await saveAttachment(req.file, { userId: req.user.id });
     const timing = statusForPayload(payload);
 
@@ -566,7 +597,7 @@ async function canReadAttachment(req, announcement) {
   if (req.permissions.includes('announcements.view')) return true;
   if (!req.permissions.includes('announcements.self')) return false;
   if (announcement.status !== 'published') return false;
-  return isAnnouncementTargeted(announcement, req.user.employeeId);
+  return isAnnouncementTargeted(announcement, req.user.employeeId, req.user.role);
 }
 
 async function sendAttachment(req, res, { inline }) {
@@ -617,7 +648,7 @@ router.get(
       const available =
         req.permissions.includes('announcements.self')
         && announcement.status === 'published'
-        && (await isAnnouncementTargeted(announcement, req.user.employeeId));
+        && (await isAnnouncementTargeted(announcement, req.user.employeeId, req.user.role));
       if (!available) throw new ApiError(403, 'This announcement is not available to you.');
     }
 
@@ -647,7 +678,7 @@ router.put(
     }
 
     const payload = validatePayload(req, { existing });
-    await assertDepartment(payload.departmentId);
+    await assertDepartment(payload.departmentId, payload.audience);
     const timing = statusForPayload(payload, existing);
     const attachment = await saveAttachment(req.file, {
       current: existing,

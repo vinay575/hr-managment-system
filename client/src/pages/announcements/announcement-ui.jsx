@@ -29,6 +29,16 @@ export const CATEGORY_META = {
   important: { label: 'Important Notice', tone: 'rose', icon: AlertTriangle, ring: 'bg-rose-50 text-rose-600' },
 };
 
+export const ROLE_OPTIONS = [
+  { key: 'employee', label: 'Employees' },
+  { key: 'hr', label: 'HR' },
+  { key: 'administration', label: 'Administration' },
+  { key: 'ceo', label: 'CEO' },
+  { key: 'super_admin', label: 'Super Admin' },
+];
+
+export const roleLabel = (key) => ROLE_OPTIONS.find((r) => r.key === key)?.label || key;
+
 export const STATUS_META = {
   draft: { label: 'Draft', tone: 'slate' },
   scheduled: { label: 'Scheduled', tone: 'amber' },
@@ -56,11 +66,20 @@ export function StatusPill({ status, label }) {
 
 export function AudienceLabel({ announcement }) {
   if (!announcement) return null;
+  const isRoles = announcement.audience === 'roles';
   const Icon = announcement.audience === 'department' ? Building2 : Users;
+  const roles = Array.isArray(announcement.audience_roles) ? announcement.audience_roles : [];
+  const text = isRoles
+    ? roles.length
+      ? `Roles: ${roles.map(roleLabel).join(', ')}`
+      : 'Specific roles'
+    : announcement.audience === 'department'
+      ? announcement.department_name || 'Specific department'
+      : 'Everyone';
   return (
     <span className="inline-flex items-center gap-1 text-[11px] text-slate-500">
       <Icon size={12} />
-      {announcement.audience === 'department' ? announcement.department_name || 'Specific department' : 'Everyone'}
+      {text}
     </span>
   );
 }
@@ -95,6 +114,7 @@ const EMPTY_FORM = {
   content: '',
   category: 'general',
   audience: 'everyone',
+  roles: [],
   departmentId: '',
   publishMode: 'now',
   publishAt: '',
@@ -109,9 +129,7 @@ const toLocalInput = (value) => {
 
 export function AnnouncementFormModal({ open, onClose, onSaved, announcement = null, departments = [] }) {
   const toast = useToast();
-  const { user } = useAuth();
   const isEdit = Boolean(announcement?.id);
-  const isCeo = user?.role === 'ceo';
   const [form, setForm] = useState(EMPTY_FORM);
   const [file, setFile] = useState(null);
   const [removeAttachment, setRemoveAttachment] = useState(false);
@@ -130,7 +148,8 @@ export function AnnouncementFormModal({ open, onClose, onSaved, announcement = n
         content: announcement.content || '',
         category: announcement.category || 'general',
         audience: announcement.audience || 'everyone',
-        departmentId: announcement.department_id ? String(announcement.department_id) : '',
+        roles: Array.isArray(announcement.audience_roles) ? announcement.audience_roles : [],
+        departmentId: announcement.audience === 'department' && announcement.department_id ? String(announcement.department_id) : '',
         publishMode: announcement.status === 'scheduled' ? 'schedule' : announcement.status === 'draft' ? 'draft' : 'now',
         publishAt: toLocalInput(announcement.publish_at),
         requiresAcknowledgment: Boolean(Number(announcement.requires_acknowledgment)),
@@ -147,6 +166,7 @@ export function AnnouncementFormModal({ open, onClose, onSaved, announcement = n
     if (form.title.trim().length < 3) return setError('Give the announcement a clear title.');
     if (form.content.trim().length < 5) return setError('Write the announcement content.');
     if (form.audience === 'department' && !form.departmentId) return setError('Choose the department this announcement is for.');
+    if (form.audience === 'roles' && !form.roles.length) return setError('Choose at least one role for this announcement.');
     if (form.publishMode === 'schedule' && !form.publishAt) return setError('Choose when this announcement should be published.');
 
     const fd = new FormData();
@@ -154,6 +174,7 @@ export function AnnouncementFormModal({ open, onClose, onSaved, announcement = n
     fd.append('content', form.content.trim());
     fd.append('category', form.category);
     fd.append('audience', form.audience);
+    fd.append('roles', form.audience === 'roles' ? form.roles.join(',') : '');
     fd.append('departmentId', form.audience === 'department' ? form.departmentId : '');
     fd.append('publishMode', form.publishMode);
     if (form.publishMode === 'schedule') fd.append('publishAt', form.publishAt);
@@ -183,7 +204,7 @@ export function AnnouncementFormModal({ open, onClose, onSaved, announcement = n
       open={open}
       onClose={onClose}
       title={isEdit ? 'Edit announcement' : 'New announcement'}
-      subtitle="Company-wide communication with optional acknowledgment tracking."
+      subtitle="Company, team and role-based communication with optional acknowledgment tracking."
       icon={Megaphone}
       size="xl"
       footer={
@@ -213,13 +234,43 @@ export function AnnouncementFormModal({ open, onClose, onSaved, announcement = n
             required
             value={form.audience}
             onChange={(e) => update('audience', e.target.value)}
-            disabled={isCeo}
-            hint={isCeo ? 'CEO announcements are always company-wide.' : undefined}
+            hint="Everyone reaches the whole company. Specific roles let you address HR, Administration, leadership or all employees."
           >
             <option value="everyone">Everyone</option>
-            {!isCeo && <option value="department">Specific department</option>}
+            <option value="roles">Specific roles</option>
+            <option value="department">Specific department</option>
           </Select>
         </div>
+
+        {form.audience === 'roles' && (
+          <Field label="Roles" required hint="Each active person with one of these roles receives the announcement and a notification.">
+            <div className="flex flex-wrap gap-2">
+              {ROLE_OPTIONS.map((role) => {
+                const active = form.roles.includes(role.key);
+                return (
+                  <button
+                    key={role.key}
+                    type="button"
+                    onClick={() =>
+                      update(
+                        'roles',
+                        active ? form.roles.filter((key) => key !== role.key) : [...form.roles, role.key]
+                      )
+                    }
+                    className={clsx(
+                      'rounded-full border px-3 py-1.5 text-[12px] font-semibold transition',
+                      active
+                        ? 'border-brand-300 bg-brand-50 text-brand-700'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-brand-200 hover:text-brand-600'
+                    )}
+                  >
+                    {role.label}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+        )}
 
         {form.audience === 'department' && (
           <Select label="Department" required value={form.departmentId} onChange={(e) => update('departmentId', e.target.value)}>
