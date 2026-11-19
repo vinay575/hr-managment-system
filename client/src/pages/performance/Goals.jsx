@@ -15,6 +15,7 @@ import {
   Progress,
   SearchInput,
   Select,
+  EmployeePicker,
 } from '../../components/ui';
 import {
   GoalDetailsModal,
@@ -173,10 +174,13 @@ export default function Goals() {
               </Select>
             )}
             {canAll && (
-              <Select value={filters.employeeId} onChange={(e) => setFilter('employeeId', e.target.value)} className="w-auto min-w-[150px] py-2 text-[12.5px]">
-                <option value="">All employees</option>
-                {employees.map((e) => <option key={e.id} value={e.id}>{e.first_name} {e.last_name}</option>)}
-              </Select>
+              <EmployeePicker
+                label="Employee"
+                value={filters.employeeId}
+                onChange={(value) => setFilter('employeeId', value)}
+                employees={employees}
+                hint="Search by name, employee ID, designation or department."
+              />
             )}
             <Select value={filters.sort} onChange={(e) => setFilter('sort', e.target.value)} className="w-auto min-w-[130px] py-2 text-[12.5px]">
               <option value="created">Newest first</option>

@@ -3,7 +3,7 @@ import { Filter, Search, UploadCloud, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../lib/api';
-import { Button, Card, SearchInput, Select } from '../../components/ui';
+import { Button, Card, SearchInput, Select, EmployeePicker } from '../../components/ui';
 import { DocumentDetailModal, EmployeeDocumentsModal, EmployeeFileGrid, UploadDocumentModal } from './document-ui';
 
 export default function AllDocuments() {
@@ -111,10 +111,13 @@ export default function AllDocuments() {
               <option value="no_expiry">No expiry</option>
             </Select>
             {canManage ? (
-              <Select label="Employee" value={filters.employeeId} onChange={(e) => update('employeeId', e.target.value)}>
-                <option value="">All employees</option>
-                {employees.map((emp) => <option key={emp.id} value={emp.id}>{emp.first_name} {emp.last_name} · {emp.employee_code}</option>)}
-              </Select>
+              <EmployeePicker
+                label="Employee"
+                value={filters.employeeId}
+                onChange={(value) => update('employeeId', value)}
+                employees={employees}
+                hint="Search by name, employee ID, designation or department."
+              />
             ) : (
               <Select label="Source" value={filters.source} onChange={(e) => update('source', e.target.value)}>
                 <option value="">All sources</option>

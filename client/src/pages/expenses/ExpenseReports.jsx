@@ -15,6 +15,7 @@ import {
   SectionTitle,
   StatCard,
 } from '../../components/ui';
+import { EmployeePicker } from '../../components/ui';
 import { EXPENSE_STATUS, expenseMoney } from './expense-ui';
 
 const RANGES = [
@@ -160,10 +161,13 @@ export default function ExpenseReports() {
             </>
           )}
           {employees.length > 0 && (
-            <select id="expense-reports-employee" name="employee_id" aria-label="Employee" className="input py-2 text-[12.5px]" value={filters.employeeId} onChange={(e) => update('employeeId', e.target.value)}>
-              <option value="">All employees</option>
-              {employees.map((emp) => <option key={emp.id} value={emp.id}>{emp.first_name} {emp.last_name}</option>)}
-            </select>
+            <EmployeePicker
+              label="Employee"
+              value={filters.employeeId}
+              onChange={(value) => update('employeeId', value)}
+              employees={employees}
+              hint="Search by name, employee ID, designation or department."
+            />
           )}
           {departments.length > 0 && (
             <select id="expense-reports-department" name="department_id" aria-label="Department" className="input py-2 text-[12.5px]" value={filters.departmentId} onChange={(e) => update('departmentId', e.target.value)}>

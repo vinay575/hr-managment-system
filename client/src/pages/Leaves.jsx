@@ -29,11 +29,11 @@ import {
   Modal,
   Progress,
   SectionTitle,
-  Select,
   StatCard,
   Tabs,
   capitalize,
 } from '../components/ui';
+import { EmployeePicker } from '../components/ui';
 
 const TYPES = [
   { value: 'annual', label: 'Annual leave', icon: Palmtree, tone: 'text-emerald-600 bg-emerald-50' },
@@ -479,10 +479,14 @@ function LeaveForm({ open, onClose, onSaved, manager = false }) {
       <div className="space-y-4">
         {error && <div className="rounded-xl bg-rose-50 px-4 py-3 text-[12.5px] font-medium text-rose-600">{error}</div>}
         {manager && (
-          <Select label="Employee" required value={form.employeeId} onChange={set('employeeId')}>
-            <option value="">Choose a team member</option>
-            {employees.map((e) => <option key={e.id} value={e.id}>{e.first_name} {e.last_name} — {e.designation}</option>)}
-          </Select>
+          <EmployeePicker
+            label="Employee"
+            required
+            value={form.employeeId}
+            onChange={(value) => set('employeeId', value)}
+            employees={employees}
+            hint="Search by name, employee ID, designation or department."
+          />
         )}
         <div>
           <p className="label">Leave type</p>
