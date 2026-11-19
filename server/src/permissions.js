@@ -132,6 +132,12 @@ export const PERMISSIONS = [
   { key: 'documents.settings', label: 'Manage document settings', module: 'Documents', description: 'Configure upload limits, verification defaults and reminder intervals.' },
   { key: 'documents.self', label: 'Own documents', module: 'Documents', description: 'View, upload, replace and download personal employee documents.' },
 
+  // Announcements & Internal Communication
+  { key: 'announcements.view', label: 'View announcements', module: 'Communication', description: 'Access the announcements dashboard and organisation announcement list.' },
+  { key: 'announcements.manage', label: 'Manage announcements', module: 'Communication', description: 'Create, edit, publish, schedule and archive announcements.' },
+  { key: 'announcements.reports', label: 'View acknowledgment reports', module: 'Communication', description: 'View who has acknowledged announcements that require acknowledgment.' },
+  { key: 'announcements.self', label: 'My announcements', module: 'Communication', description: 'Read announcements targeted to the signed-in employee and acknowledge them.' },
+
   // System
   { key: 'users.manage', label: 'Manage users', module: 'System', description: 'Create users and assign roles and access.' },
   { key: 'roles.manage', label: 'Manage roles & permissions', module: 'System', description: 'Configure module-level permissions per role.' },
@@ -172,6 +178,10 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'documents.view',
     'documents.reports',
     'documents.self',
+    'announcements.view',
+    'announcements.manage',
+    'announcements.reports',
+    'announcements.self',
     'settings.self',
   ],
   administration: [
@@ -201,6 +211,9 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'documents.verify',
     'documents.reports',
     'documents.self',
+    'announcements.view',
+    'announcements.manage',
+    'announcements.self',
     'settings.self',
   ],
   hr: [
@@ -252,6 +265,10 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'documents.reports',
     'documents.settings',
     'documents.self',
+    'announcements.view',
+    'announcements.manage',
+    'announcements.reports',
+    'announcements.self',
     'settings.self',
   ],
   employee: [
@@ -265,6 +282,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'onboarding.self',
     'offboarding.self',
     'documents.self',
+    'announcements.self',
     'settings.self',
   ],
 };

@@ -27,6 +27,10 @@ const routes = [
   { path: '/performance/goals', permission: ['performance.goals.view', 'performance.goals.manage', 'performance.goals.self'] },
   { path: '/performance/review-cycles', permission: ['performance.reviews.view', 'performance.reviews.manage'] },
   { path: '/performance/reports', permission: ['performance.reports'] },
+  { path: '/announcements', permission: ['announcements.view', 'announcements.self'] },
+  { path: '/announcements/all', permission: ['announcements.view'] },
+  { path: '/announcements/my', permission: ['announcements.self'] },
+  { path: '/announcements/reports', permission: ['announcements.reports'] },
 ];
 
 function isAllowed(role, permissions) {
@@ -292,7 +296,7 @@ test('primary pages stay within common responsive viewports', async ({ page }) =
 
   for (const size of sizes) {
     await page.setViewportSize(size);
-    for (const path of ['/', '/employees', '/attendance', '/leaves', '/payroll', '/recruitment', '/expenses', '/performance']) {
+    for (const path of ['/', '/employees', '/attendance', '/leaves', '/payroll', '/recruitment', '/expenses', '/performance', '/announcements', '/announcements/my']) {
       await page.goto(path);
       await expect(page).not.toHaveURL(/\/login$/);
       const dimensions = await page.locator('html').evaluate((element) => ({
@@ -361,6 +365,10 @@ test('all registered authenticated pages render for a Super Admin using API fixt
     '/performance/review-cycles',
     '/performance/review-history',
     '/performance/reports',
+    '/announcements',
+    '/announcements/all',
+    '/announcements/my',
+    '/announcements/reports',
     '/notifications',
   ];
   const pageErrors = [];

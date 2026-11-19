@@ -265,7 +265,26 @@ The same permission system drives both the **sidebar navigation** and the **API 
 - Employee completeness tracking, per-category reminders, CSV exports for all documents, missing requirements, and expiry exposure.
 - Documents are available inside the existing Employee Profile without redesigning it, and remain accessible to authorised HR/Admin after separation.
 
-### 2.9 Administration & security
+### 2.9 Announcements & internal communication
+
+**Publishing**
+- Categories: General, HR, Holiday, Policy, and Important Notice.
+- Audience: everyone, or a single department. CEO notices are always company-wide.
+- Publish immediately or schedule a future date and time; scheduled notices go live automatically, with a safety-net job on the API server.
+- Statuses: `draft`, `scheduled`, `published`, `archived`. Drafts let managers save work before publishing.
+- Optional acknowledgment requirement and an optional attachment (validated and stored in the private document store).
+
+**Employee feed**
+- My Announcements shows only published notices targeted at the signed-in employee's department or everyone.
+- Read/unread tracking, a read timestamp on first open, and an acknowledge action with its own timestamp.
+- Attachments open only when the notice is published and the employee is actually targeted.
+
+**Reports and notifications**
+- Dashboard totals for published, scheduled, acknowledgment-required, and recent announcements.
+- Acknowledgment report per notice with targeted/acknowledged/pending counts, completion percentage, employee and department columns, status filtering, and CSV export.
+- Publishing (immediately or when a scheduled notice goes live) creates one notification per targeted user through `hrm_notifications`, deduplicated by `announcement-<id>`.
+
+### 2.10 Administration & security
 
 **Users and access**
 - Create users with name, email, temporary password, role, and optional employee link.
@@ -348,6 +367,10 @@ The same permission system drives both the **sidebar navigation** and the **API 
 | Document categories | ✅ | — | — | Manage | — |
 | Document reports | ✅ | ✅ | ✅ | ✅ | — |
 | Document settings | ✅ | — | — | ✅ | — |
+| **Announcement dashboard** | ✅ | View | View | View | My feed |
+| All announcements | ✅ | Manage | Manage | Manage | — |
+| My announcements | ✅ | Own | Own | Own | Own |
+| Acknowledgment reports | ✅ | ✅ | — | ✅ | — |
 | **Access control** | ✅ | — | — | Users only* | — |
 | **Audit log** | ✅ | — | — | — | — |
 
@@ -687,12 +710,14 @@ npm run migrate:expenses       # expense tables, categories, settings
 npm run migrate:performance    # performance tables
 npm run migrate:notifications  # notification table
 npm run migrate:documents      # document management tables, categories, settings
+npm run migrate:announcements  # announcement tables + announcement permissions
 ```
 
 If the application database account lacks `CREATE`/`REFERENCES` privileges, run the generated additive script in your database console instead:
 
 ```bash
 server/sql/phase6-documents.sql
+server/sql/phase7-announcements.sql
 ```
 
 It is idempotent and never drops or alters existing tables or rows.
@@ -701,6 +726,7 @@ If your application account cannot create tables, the migration script also acce
 
 ```bash
 DB_ADMIN_USER=... DB_ADMIN_PASSWORD=... npm run migrate:documents
+DB_ADMIN_USER=... DB_ADMIN_PASSWORD=... npm run migrate:announcements
 ```
 
 ---

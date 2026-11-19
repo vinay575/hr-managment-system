@@ -21,6 +21,7 @@
     "migrate:performance": "node server/src/migrate-performance.js",
     "migrate:notifications": "node server/src/migrate-notifications.js",
     "migrate:documents": "node server/src/migrate-documents.js",
+    "migrate:announcements": "node server/src/migrate-announcements.js",
     "build": "vite build",
     "start": "node server/src/index.js",
     "preview": "vite preview",

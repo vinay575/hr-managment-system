@@ -1,6 +1,7 @@
 import { testConnection } from './db.js';
 import { createApp } from './app.js';
 import { runDocumentReminders } from './services/document-notifications.js';
+import { publishDueAnnouncements } from './services/announcements.js';
 const PORT = Number(process.env.PORT) || 4001;
 const app = createApp();
 
@@ -11,6 +12,13 @@ function scheduleDocumentReminders() {
   setInterval(run, 12 * 60 * 60 * 1000).unref?.();
 }
 
+function scheduleAnnouncementPublisher() {
+  const run = () => publishDueAnnouncements().catch((err) => console.error('Announcement publish job failed:', err.message));
+  // Scheduled notices normally publish on the next request; this keeps them on time.
+  setTimeout(run, 15_000).unref?.();
+  setInterval(run, 60_000).unref?.();
+}
+
 let retries = 5;
 while (retries > 0) {
   try {
@@ -19,6 +27,7 @@ while (retries > 0) {
     app.listen(PORT, () => {
       console.log(`✓ Aurora HR API running at http://localhost:${PORT}`);
       scheduleDocumentReminders();
+      scheduleAnnouncementPublisher();
     });
     break;
   } catch (err) {

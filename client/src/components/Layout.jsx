@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import {
   BarChart3,
   Bell,
+  BellRing,
   Briefcase,
   Building2,
   CalendarDays,
@@ -21,6 +22,8 @@ import {
   LayoutDashboard,
   LifeBuoy,
   LogOut,
+  MailCheck,
+  Megaphone,
   Menu,
   PieChart,
   Receipt,
@@ -113,6 +116,15 @@ const NAV = [
     ],
   },
   {
+    section: 'Communication',
+    items: [
+      { to: '/announcements', label: 'Announcements', icon: Megaphone, end: true, permission: 'announcements.view' },
+      { to: '/announcements/all', label: 'All announcements', icon: BellRing, permission: 'announcements.view' },
+      { to: '/announcements/my', label: 'My announcements', icon: MailCheck, permission: 'announcements.self' },
+      { to: '/announcements/reports', label: 'Acknowledgment reports', icon: ClipboardCheck, permission: 'announcements.reports' },
+    ],
+  },
+  {
     section: 'Insights',
     items: [{ to: '/reports', label: 'Reports', icon: BarChart3, permission: 'reports.view' }],
   },
@@ -180,6 +192,10 @@ const PAGE_META = {
   '/documents/categories': { title: 'Document categories', subtitle: 'Required types, expiry rules and verification behaviour.' },
   '/documents/reports': { title: 'Document reports', subtitle: 'Completeness, verification and expiry reporting with CSV export.' },
   '/documents/settings': { title: 'Document settings', subtitle: 'Upload limits, formats, verification and reminder policy.' },
+  '/announcements': { title: 'Announcements', subtitle: 'Company updates, scheduled notices and acknowledgment tracking.' },
+  '/announcements/all': { title: 'All announcements', subtitle: 'Every published, scheduled, drafted and archived notice.' },
+  '/announcements/my': { title: 'My announcements', subtitle: 'Notices addressed to you, with read and acknowledgment status.' },
+  '/announcements/reports': { title: 'Acknowledgment reports', subtitle: 'See who has read and acknowledged important company notices.' },
 };
 
 const resolveMeta = (pathname) => {
@@ -364,6 +380,7 @@ function Notifications() {
     offer: FileSignature,
     expense: Receipt,
     performance: Target,
+    announcement: Megaphone,
   };
   const tones = {
     leave: 'bg-amber-50 text-amber-600',
@@ -374,6 +391,7 @@ function Notifications() {
     offer: 'bg-orange-50 text-orange-600',
     expense: 'bg-violet-50 text-violet-600',
     performance: 'bg-teal-50 text-teal-600',
+    announcement: 'bg-brand-50 text-brand-600',
   };
 
   const openItem = async (item) => {

@@ -129,6 +129,14 @@ export const api = {
     if (!res.ok) throw new Error('Could not load this document.');
     return URL.createObjectURL(await res.blob());
   },
+  announcementAttachmentUrl: async (id, mode = 'preview') => {
+    const token = authToken();
+    const res = await fetch(`${BASE}/announcements/${encodeURIComponent(id)}/attachment/${mode}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error('Could not load this attachment.');
+    return URL.createObjectURL(await res.blob());
+  },
 };
 
 export const fmtMoney = (n, compact = false) => {

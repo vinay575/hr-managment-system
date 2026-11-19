@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Briefcase, CalendarDays, CheckCheck, Clock3, Receipt, Target, UserPlus, Wallet } from 'lucide-react';
+import { Bell, Briefcase, CalendarDays, CheckCheck, Clock3, Megaphone, Receipt, Target, UserPlus, Wallet } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { api, fmtDate } from '../lib/api';
 import { Button, Card, EmptyState, LoadingBlock, SectionTitle } from '../components/ui';
@@ -14,6 +14,7 @@ const icons = {
   offer: Briefcase,
   expense: Receipt,
   performance: Target,
+  announcement: Megaphone,
   info: Bell,
 };
 
@@ -26,6 +27,7 @@ const tones = {
   offer: 'bg-orange-50 text-orange-600',
   expense: 'bg-violet-50 text-violet-600',
   performance: 'bg-teal-50 text-teal-600',
+  announcement: 'bg-brand-50 text-brand-600',
   info: 'bg-slate-100 text-slate-500',
 };
 

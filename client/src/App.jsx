@@ -56,6 +56,10 @@ const MissingDocuments = lazy(() => import('./pages/documents/MissingDocuments')
 const DocumentCategories = lazy(() => import('./pages/documents/DocumentCategories'));
 const DocumentReports = lazy(() => import('./pages/documents/DocumentReports'));
 const DocumentSettings = lazy(() => import('./pages/documents/DocumentSettings'));
+const AnnouncementDashboard = lazy(() => import('./pages/announcements/AnnouncementDashboard'));
+const AllAnnouncements = lazy(() => import('./pages/announcements/AllAnnouncements'));
+const MyAnnouncements = lazy(() => import('./pages/announcements/MyAnnouncements'));
+const AcknowledgmentReports = lazy(() => import('./pages/announcements/AcknowledgmentReports'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -83,6 +87,12 @@ function Protected({ permission, children }) {
   if (!user) return <Navigate to="/login" replace />;
   if (permission && !can(permission)) return <Navigate to="/" replace />;
   return children || <Outlet />;
+}
+
+/** Employees land on their own feed; managers land on the announcement dashboard. */
+function AnnouncementLanding() {
+  const { can } = useAuth();
+  return can('announcements.view') ? <AnnouncementDashboard /> : <MyAnnouncements />;
 }
 
 export default function App() {
@@ -159,6 +169,12 @@ export default function App() {
                 <Route path="documents/categories" element={<Protected permission="documents.categories.manage"><DocumentCategories /></Protected>} />
                 <Route path="documents/reports" element={<Protected permission="documents.reports"><DocumentReports /></Protected>} />
                 <Route path="documents/settings" element={<Protected permission="documents.settings"><DocumentSettings /></Protected>} />
+
+                {/* Phase 7: Announcements & Internal Communication */}
+                <Route path="announcements" element={<Protected permission={['announcements.view', 'announcements.self']}><AnnouncementLanding /></Protected>} />
+                <Route path="announcements/all" element={<Protected permission="announcements.view"><AllAnnouncements /></Protected>} />
+                <Route path="announcements/my" element={<Protected permission="announcements.self"><MyAnnouncements /></Protected>} />
+                <Route path="announcements/reports" element={<Protected permission="announcements.reports"><AcknowledgmentReports /></Protected>} />
                 </Route>
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />

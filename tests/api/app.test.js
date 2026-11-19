@@ -71,6 +71,10 @@ const roleMatrix = [
   { name: 'document reports', path: '/api/documents/reports', permissions: ['documents.reports'] },
   { name: 'document settings', path: '/api/documents/settings', permissions: ['documents.settings'] },
   { name: 'document categories', path: '/api/documents/categories', permissions: ['documents.view', 'documents.self', 'documents.manage', 'documents.categories.manage'] },
+  { name: 'announcement dashboard', path: '/api/announcements/dashboard', permissions: ['announcements.view'] },
+  { name: 'announcement list', path: '/api/announcements', permissions: ['announcements.view'] },
+  { name: 'my announcements', path: '/api/announcements/my', permissions: ['announcements.self'] },
+  { name: 'acknowledgment reports', path: '/api/announcements/reports', permissions: ['announcements.reports'] },
 ];
 
 beforeAll(async () => {
