@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import {
   AlertTriangle,
+  BellRing,
   CheckCircle2,
+  ChevronRight,
   Download,
   Eye,
   FileText,
@@ -11,6 +13,7 @@ import {
   ShieldCheck,
   Trash2,
   UploadCloud,
+  Users,
   XCircle,
 } from 'lucide-react';
 import { api, fmtDate } from '../../lib/api';
@@ -592,12 +595,73 @@ function Info({ label, children }) {
   );
 }
 
-export function EmployeeDocumentsModal({ open, employee, onClose, onOpenDocument, onUpload }) {
+export function EmployeeFileGrid({
+  employees = [],
+  onSelect,
+  countNoun = 'file',
+  emptyIcon = Users,
+  emptyTitle = 'No employees found',
+  emptyDescription,
+  emptyAction,
+  loading = false,
+  loadingLabel = 'Loading employee documents…',
+  className,
+}) {
+  if (loading) return <LoadingBlock label={loadingLabel} className="py-16" />;
+  if (!employees.length) {
+    return (
+      <EmptyState
+        icon={emptyIcon}
+        title={emptyTitle}
+        description={emptyDescription}
+        action={emptyAction}
+        className="py-16"
+      />
+    );
+  }
+  return (
+    <div className={clsx('grid grid-cols-1 gap-2.5 md:grid-cols-2 xl:grid-cols-3', className)}>
+      {employees.map((emp) => (
+        <button
+          key={emp.employee_id}
+          type="button"
+          onClick={() => onSelect?.(emp)}
+          className="flex w-full items-center gap-3 rounded-xl border border-slate-100 bg-white px-3.5 py-3 text-left transition hover:border-brand-200 hover:bg-brand-50/20"
+        >
+          <Avatar name={emp.employee_name} color={emp.avatar_color || 'indigo'} size="sm" />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[12.5px] font-semibold text-ink-900">{emp.employee_name}</span>
+            <span className="block truncate text-[10.5px] text-slate-400">
+              {emp.employee_code || 'No employee ID'}{emp.department_name ? ` · ${emp.department_name}` : ''}
+            </span>
+            <span className="mt-1.5 flex flex-wrap items-center gap-1">
+              {emp.complete && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">Complete</span>}
+              {emp.pending > 0 && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">{emp.pending} pending</span>}
+              {emp.missing > 0 && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">{emp.missing} missing</span>}
+              {emp.rejected > 0 && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-700">{emp.rejected} rejected</span>}
+              {emp.expiring > 0 && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">{emp.expiring} expiring</span>}
+              {emp.expired > 0 && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-700">{emp.expired} expired</span>}
+              {!emp.total && !emp.missing && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">No uploads</span>}
+            </span>
+          </span>
+          <span className="shrink-0 text-right">
+            <span className="block text-[14px] font-extrabold text-ink-900">{emp.total}</span>
+            <span className="block text-[10px] text-slate-400">{countNoun}{emp.total === 1 ? '' : 's'}</span>
+          </span>
+          <ChevronRight size={15} className="shrink-0 text-slate-300" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function EmployeeDocumentsModal({ open, employee, onClose, onOpenDocument, onUpload, onRemind, refreshKey = 0 }) {
   const { can } = useAuth();
   const employeeId = employee?.employee_id ?? employee?.id;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [reminding, setReminding] = useState(false);
 
   const load = useCallback(async () => {
     if (!employeeId) return;
@@ -618,7 +682,7 @@ export function EmployeeDocumentsModal({ open, employee, onClose, onOpenDocument
       setData(null);
       setError('');
     }
-  }, [open, employeeId, load]);
+  }, [open, employeeId, load, refreshKey]);
 
   const canManage = can('documents.manage');
   const documents = data?.documents || [];
@@ -627,6 +691,16 @@ export function EmployeeDocumentsModal({ open, employee, onClose, onOpenDocument
 
   const upload = () => {
     onUpload?.(employee);
+  };
+
+  const remind = async () => {
+    if (!onRemind) return;
+    setReminding(true);
+    try {
+      await onRemind(employee);
+    } finally {
+      setReminding(false);
+    }
   };
 
   return (
@@ -640,6 +714,9 @@ export function EmployeeDocumentsModal({ open, employee, onClose, onOpenDocument
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>Close</Button>
+          {onRemind && outstanding.length > 0 && (
+            <Button variant="secondary" icon={BellRing} loading={reminding} onClick={remind}>Send reminder</Button>
+          )}
           {canManage && (
             <Button variant="primary" icon={UploadCloud} onClick={upload}>Upload document</Button>
           )}

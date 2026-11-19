@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { AlertTriangle, BarChart3, CheckCircle2, Download, FileText, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, BarChart3, CheckCircle2, ChevronRight, Download, FileText, ShieldAlert } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
-import { api, fmtDate } from '../../lib/api';
-import { Button, Card, EmptyState, LoadingBlock, Progress, SectionTitle, StatCard } from '../../components/ui';
-import { StatusPill } from './document-ui';
+import { api } from '../../lib/api';
+import { Avatar, Button, Card, EmptyState, LoadingBlock, Progress, SectionTitle, StatCard } from '../../components/ui';
+import { DocumentDetailModal, EmployeeDocumentsModal } from './document-ui';
 
 const COLORS = ['#10b981', '#f59e0b', '#f43f5e', '#6366f1', '#0ea5e9'];
 
@@ -14,6 +14,9 @@ export default function DocumentReports() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState('');
+  const [employeeFile, setEmployeeFile] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [docRefresh, setDocRefresh] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -46,6 +49,73 @@ export default function DocumentReports() {
     () => (data?.byStatus || []).map((s) => ({ name: s.status, value: s.count })),
     [data]
   );
+
+  const expiryEmployees = useMemo(() => {
+    const map = new Map();
+    for (const doc of [...(data?.expired || []), ...(data?.expiring || [])]) {
+      const id = Number(doc.employee_id);
+      if (!map.has(id)) {
+        map.set(id, {
+          employee_id: doc.employee_id,
+          employee_name: doc.employee_name,
+          employee_code: doc.employee_code,
+          avatar_color: doc.avatar_color,
+          department_name: doc.department_name,
+          total: 0,
+          expired: 0,
+          expiring: 0,
+        });
+      }
+      const entry = map.get(id);
+      entry.total += 1;
+      if (doc.expiry_status === 'expired') entry.expired += 1;
+      else entry.expiring += 1;
+    }
+    return [...map.values()].sort((a, b) => b.total - a.total);
+  }, [data]);
+
+  const rejectedEmployees = useMemo(() => {
+    const map = new Map();
+    for (const doc of data?.rejected || []) {
+      const id = Number(doc.employee_id);
+      if (!map.has(id)) {
+        map.set(id, {
+          employee_id: doc.employee_id,
+          employee_name: doc.employee_name,
+          employee_code: doc.employee_code,
+          avatar_color: doc.avatar_color,
+          department_name: doc.department_name,
+          total: 0,
+        });
+      }
+      map.get(id).total += 1;
+    }
+    return [...map.values()].sort((a, b) => b.total - a.total);
+  }, [data]);
+
+  const missingEmployees = useMemo(() => {
+    const map = new Map();
+    for (const row of data?.missing || []) {
+      const id = Number(row.employee_id);
+      if (!map.has(id)) {
+        map.set(id, {
+          employee_id: row.employee_id,
+          employee_name: row.employee_name,
+          employee_code: row.employee_code,
+          avatar_color: row.avatar_color,
+          department_name: row.department_name,
+          total: 0,
+          missing: 0,
+          rejected: 0,
+        });
+      }
+      const entry = map.get(id);
+      entry.total += 1;
+      if (row.status === 'rejected') entry.rejected += 1;
+      else entry.missing += 1;
+    }
+    return [...map.values()].sort((a, b) => b.total - a.total);
+  }, [data]);
 
   if (loading && !data) return <LoadingBlock label="Building document report…" />;
   if (!data) return <EmptyState icon={BarChart3} title="Report unavailable" description="Please refresh and try again." />;
@@ -145,60 +215,98 @@ export default function DocumentReports() {
         </Card>
 
         <Card className="p-5">
-          <SectionTitle title="Expiry exposure" description="Next documents needing renewal" action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('expiring')}>CSV</Button>} />
+          <SectionTitle title="Expiry exposure" description="Employees with documents needing renewal" action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('expiring')}>CSV</Button>} />
           <div className="mt-3 space-y-2">
-            {[...(data.expiring || []), ...(data.expired || [])].slice(0, 8).map((doc) => (
-              <div key={doc.uid} className="flex items-center gap-2.5 rounded-lg border border-slate-100 px-3 py-2">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[12px] font-semibold text-ink-800">{doc.name}</p>
-                  <p className="truncate text-[10.5px] text-slate-400">{doc.employee_name} · {doc.category_name}</p>
-                </div>
-                <span className={clsx('text-[10.5px] font-semibold', doc.expiry_status === 'expired' ? 'text-rose-600' : 'text-amber-600')}>
-                  {doc.expiry_status === 'expired' ? 'Expired' : `${doc.days_remaining}d`}
-                </span>
-              </div>
+            {expiryEmployees.slice(0, 8).map((emp) => (
+              <ReportEmployeeRow
+                key={emp.employee_id}
+                employee={emp}
+                onOpen={() => setEmployeeFile(emp)}
+                subtitle={`${emp.expired ? `${emp.expired} expired` : ''}${emp.expired && emp.expiring ? ' · ' : ''}${emp.expiring ? `${emp.expiring} expiring` : ''}`}
+                count={emp.total}
+                tone={emp.expired ? 'rose' : 'amber'}
+              />
             ))}
-            {!data.expiring?.length && !data.expired?.length && <p className="py-8 text-center text-[12px] text-slate-400">No expiry exposure.</p>}
+            {!expiryEmployees.length && <p className="py-8 text-center text-[12px] text-slate-400">No expiry exposure.</p>}
           </div>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <Card className="p-5">
-          <SectionTitle title="Rejected documents" description="Awaiting replacement or correction" action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('documents')}>CSV</Button>} />
+          <SectionTitle title="Rejected documents" description="Employees awaiting replacement or correction" action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('documents')}>CSV</Button>} />
           <div className="mt-3 space-y-2">
-            {(data.rejected || []).slice(0, 8).map((doc) => (
-              <div key={doc.uid} className="rounded-lg border border-slate-100 px-3 py-2">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-[12px] font-semibold text-ink-800">{doc.name}</p>
-                  <StatusPill status="rejected" />
-                </div>
-                <p className="truncate text-[10.5px] text-slate-400">{doc.employee_name} · {doc.rejection_reason || 'No reason recorded'}</p>
-              </div>
+            {rejectedEmployees.slice(0, 8).map((emp) => (
+              <ReportEmployeeRow
+                key={emp.employee_id}
+                employee={emp}
+                onOpen={() => setEmployeeFile(emp)}
+                subtitle={`${emp.total} rejected document${emp.total === 1 ? '' : 's'}`}
+                count={emp.total}
+                tone="rose"
+              />
             ))}
-            {!data.rejected?.length && <p className="py-8 text-center text-[12px] text-slate-400">No rejected documents.</p>}
+            {!rejectedEmployees.length && <p className="py-8 text-center text-[12px] text-slate-400">No rejected documents.</p>}
           </div>
         </Card>
 
         <Card className="p-5">
-          <SectionTitle title="Missing required documents" description="Outstanding employee requirements" action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('missing')}>CSV</Button>} />
+          <SectionTitle title="Missing required documents" description="Employees with outstanding requirements" action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('missing')}>CSV</Button>} />
           <div className="mt-3 space-y-2">
-            {(data.missing || []).slice(0, 8).map((row) => (
-              <div key={`${row.employee_id}:${row.category_id}`} className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 px-3 py-2">
-                <div className="min-w-0">
-                  <p className="truncate text-[12px] font-semibold text-ink-800">{row.employee_name}</p>
-                  <p className="truncate text-[10.5px] text-slate-400">{row.category_name} · {row.department_name || 'Unassigned'}</p>
-                </div>
-                <div className="text-right">
-                  <StatusPill status={row.status} />
-                  <p className="mt-1 text-[10px] text-slate-400">{row.last_reminder ? fmtDate(row.last_reminder) : 'No reminder'}</p>
-                </div>
-              </div>
+            {missingEmployees.slice(0, 8).map((emp) => (
+              <ReportEmployeeRow
+                key={emp.employee_id}
+                employee={emp}
+                onOpen={() => setEmployeeFile(emp)}
+                subtitle={`${emp.missing} missing${emp.rejected ? ` · ${emp.rejected} rejected` : ''}`}
+                count={emp.total}
+                tone="slate"
+              />
             ))}
-            {!data.missing?.length && <p className="py-8 text-center text-[12px] text-slate-400">No missing requirements.</p>}
+            {!missingEmployees.length && <p className="py-8 text-center text-[12px] text-slate-400">No missing requirements.</p>}
           </div>
         </Card>
       </div>
+
+      <EmployeeDocumentsModal
+        open={Boolean(employeeFile)}
+        employee={employeeFile}
+        refreshKey={docRefresh}
+        onClose={() => setEmployeeFile(null)}
+        onOpenDocument={(uid) => setSelected(uid)}
+      />
+      <DocumentDetailModal
+        open={Boolean(selected)}
+        uid={selected}
+        onClose={() => setSelected(null)}
+        onChanged={() => {
+          setDocRefresh((value) => value + 1);
+          load();
+        }}
+      />
     </div>
+  );
+}
+
+function ReportEmployeeRow({ employee, onOpen, subtitle, count, tone = 'slate' }) {
+  const toneClass = tone === 'rose'
+    ? 'bg-rose-50 text-rose-700'
+    : tone === 'amber'
+      ? 'bg-amber-50 text-amber-700'
+      : 'bg-slate-100 text-slate-600';
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex w-full items-center gap-2.5 rounded-lg border border-slate-100 px-3 py-2 text-left transition hover:border-brand-200 hover:bg-brand-50/20"
+    >
+      <Avatar name={employee.employee_name} color={employee.avatar_color || 'indigo'} size="xs" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[12px] font-semibold text-ink-800">{employee.employee_name}</p>
+        <p className="truncate text-[10.5px] text-slate-400">{subtitle}</p>
+      </div>
+      <span className={clsx('rounded-full px-2 py-0.5 text-[10.5px] font-semibold', toneClass)}>{count}</span>
+      <ChevronRight size={14} className="shrink-0 text-slate-300" />
+    </button>
   );
 }

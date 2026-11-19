@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   ArrowRight,
   CheckCircle2,
-  ChevronRight,
   Clock3,
   FileText,
   FolderPlus,
@@ -19,7 +18,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../lib/api';
 import { Avatar, Button, Card, EmptyState, LoadingBlock, Progress, SearchInput, SectionTitle, StatCard } from '../../components/ui';
-import { DocumentDetailModal, EmployeeDocumentsModal, UploadDocumentModal } from './document-ui';
+import { DocumentDetailModal, EmployeeDocumentsModal, EmployeeFileGrid, UploadDocumentModal } from './document-ui';
 
 const COLORS = ['#10b981', '#f59e0b', '#f43f5e', '#6366f1'];
 const RING = ['#6366f1', '#8b5cf6'];
@@ -80,6 +79,20 @@ export default function DocumentsDashboard() {
       `${row.employee_name} ${row.employee_code} ${row.department_name || ''}`.toLowerCase().includes(q)
     );
   }, [employeeFiles, employeeSearch]);
+  const attentionEmployees = useMemo(
+    () => employeeFiles
+      .filter((emp) => emp.pending > 0 || emp.rejected > 0)
+      .sort((a, b) => (b.pending + b.rejected) - (a.pending + a.rejected))
+      .slice(0, 5),
+    [employeeFiles]
+  );
+  const expiryEmployees = useMemo(
+    () => employeeFiles
+      .filter((emp) => emp.expiring > 0 || emp.expired > 0)
+      .sort((a, b) => (b.expired + b.expiring) - (a.expired + a.expiring))
+      .slice(0, 5),
+    [employeeFiles]
+  );
 
   if (loading && !data) return <LoadingBlock label="Loading document overview…" />;
   if (!data) return <EmptyState icon={FileText} title="Document overview unavailable" description="Please refresh the page or try again shortly." />;
@@ -201,21 +214,23 @@ export default function DocumentsDashboard() {
         <Card className="p-5">
           <SectionTitle
             title="Needs attention"
-            description="Pending verification and rejected files"
+            description="Employees with pending or rejected files"
             action={canVerify ? <Link to="/documents/pending-verification" className="text-[11.5px] font-semibold text-brand-600">Queue</Link> : null}
           />
           <div className="mt-3 space-y-2">
-            {[...(data.attention?.pending || []), ...(data.attention?.rejected || [])].slice(0, 5).map((doc) => (
-              <button key={doc.uid} onClick={() => setSelected(doc.uid)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50">
-                <Avatar name={doc.employee_name} color={doc.avatar_color || 'indigo'} size="xs" />
+            {attentionEmployees.map((emp) => (
+              <button key={emp.employee_id} onClick={() => setEmployeeFile(emp)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50">
+                <Avatar name={emp.employee_name} color={emp.avatar_color || 'indigo'} size="xs" />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[12px] font-semibold text-ink-800">{doc.name}</span>
-                  <span className="block truncate text-[10.5px] text-slate-400">{doc.employee_name} · {doc.status}</span>
+                  <span className="block truncate text-[12px] font-semibold text-ink-800">{emp.employee_name}</span>
+                  <span className="block truncate text-[10.5px] text-slate-400">
+                    {emp.pending > 0 ? `${emp.pending} pending` : ''}{emp.pending > 0 && emp.rejected > 0 ? ' · ' : ''}{emp.rejected > 0 ? `${emp.rejected} rejected` : ''}
+                  </span>
                 </span>
                 <ArrowRight size={13} className="text-slate-300" />
               </button>
             ))}
-            {!data.attention?.pending?.length && !data.attention?.rejected?.length && (
+            {!attentionEmployees.length && (
               <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-3 text-[11.5px] text-emerald-700">
                 <CheckCircle2 size={14} /> No documents need verification right now.
               </div>
@@ -224,20 +239,22 @@ export default function DocumentsDashboard() {
         </Card>
 
         <Card className="p-5">
-          <SectionTitle title="Expiring & expired" description="Renewal required" action={<Link to="/documents/expiring" className="text-[11.5px] font-semibold text-brand-600">View</Link>} />
+          <SectionTitle title="Expiring & expired" description="Employees needing renewals" action={<Link to="/documents/expiring" className="text-[11.5px] font-semibold text-brand-600">View</Link>} />
           <div className="mt-3 space-y-2">
-            {[...(data.attention?.expired || []), ...(data.attention?.expiring || [])].slice(0, 5).map((doc) => (
-              <button key={doc.uid} onClick={() => setSelected(doc.uid)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50">
-                <span className={clsx('grid h-7 w-7 place-items-center rounded-lg', doc.expiry_status === 'expired' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600')}>
+            {expiryEmployees.map((emp) => (
+              <button key={emp.employee_id} onClick={() => setEmployeeFile(emp)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50">
+                <span className={clsx('grid h-7 w-7 place-items-center rounded-lg', emp.expired > 0 ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600')}>
                   <AlertTriangle size={13} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[12px] font-semibold text-ink-800">{doc.name}</span>
-                  <span className="block truncate text-[10.5px] text-slate-400">{doc.employee_name} · {doc.expiry_label}</span>
+                  <span className="block truncate text-[12px] font-semibold text-ink-800">{emp.employee_name}</span>
+                  <span className="block truncate text-[10.5px] text-slate-400">
+                    {emp.expired > 0 ? `${emp.expired} expired` : ''}{emp.expired > 0 && emp.expiring > 0 ? ' · ' : ''}{emp.expiring > 0 ? `${emp.expiring} expiring` : ''}
+                  </span>
                 </span>
               </button>
             ))}
-            {!data.attention?.expiring?.length && !data.attention?.expired?.length && (
+            {!expiryEmployees.length && (
               <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-3 text-[11.5px] text-emerald-700">
                 <CheckCircle2 size={14} /> No documents expiring soon.
               </div>
@@ -262,50 +279,21 @@ export default function DocumentsDashboard() {
             </div>
           }
         />
-        {visibleEmployees.length ? (
-          <div className="mt-4 grid grid-cols-1 gap-2.5 md:grid-cols-2 xl:grid-cols-3">
-            {visibleEmployees.map((emp) => (
-              <button
-                key={emp.employee_id}
-                type="button"
-                onClick={() => setEmployeeFile(emp)}
-                className="flex w-full items-center gap-3 rounded-xl border border-slate-100 bg-white px-3.5 py-3 text-left transition hover:border-brand-200 hover:bg-brand-50/20"
-              >
-                <Avatar name={emp.employee_name} color={emp.avatar_color || 'indigo'} size="sm" />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[12.5px] font-semibold text-ink-900">{emp.employee_name}</span>
-                  <span className="block truncate text-[10.5px] text-slate-400">
-                    {emp.employee_code || 'No employee ID'}{emp.department_name ? ` · ${emp.department_name}` : ''}
-                  </span>
-                  <span className="mt-1.5 flex flex-wrap items-center gap-1">
-                    {emp.complete && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">Complete</span>}
-                    {emp.pending > 0 && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">{emp.pending} pending</span>}
-                    {emp.missing > 0 && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">{emp.missing} missing</span>}
-                    {emp.expired > 0 && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-700">{emp.expired} expired</span>}
-                    {!emp.total && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">No uploads</span>}
-                  </span>
-                </span>
-                <span className="shrink-0 text-right">
-                  <span className="block text-[14px] font-extrabold text-ink-900">{emp.total}</span>
-                  <span className="block text-[10px] text-slate-400">file{emp.total === 1 ? '' : 's'}</span>
-                </span>
-                <ChevronRight size={15} className="shrink-0 text-slate-300" />
-              </button>
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            icon={Users}
-            title={employeeSearch ? 'No employees match this search' : 'No employees yet'}
-            description={
-              employeeSearch
-                ? 'Try a different name, employee ID or department.'
-                : 'Add employees to begin collecting and reviewing document files.'
-            }
-            action={employeeSearch ? <Button variant="secondary" onClick={() => setEmployeeSearch('')}>Clear search</Button> : null}
-            className="py-12"
-          />
-        )}
+        <EmployeeFileGrid
+          employees={visibleEmployees}
+          onSelect={setEmployeeFile}
+          countNoun="file"
+          loading={loading}
+          emptyIcon={Users}
+          emptyTitle={employeeSearch ? 'No employees match this search' : 'No employees yet'}
+          emptyDescription={
+            employeeSearch
+              ? 'Try a different name, employee ID or department.'
+              : 'Add employees to begin collecting and reviewing document files.'
+          }
+          emptyAction={employeeSearch ? <Button variant="secondary" onClick={() => setEmployeeSearch('')}>Clear search</Button> : null}
+          className="mt-4"
+        />
       </Card>
 
       <UploadDocumentModal

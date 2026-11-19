@@ -66,6 +66,7 @@ const roleMatrix = [
   { name: 'performance reports', path: '/api/performance/reports/goals', permissions: ['performance.reports'] },
   { name: 'document dashboard', path: '/api/documents/dashboard', permissions: ['documents.view', 'documents.self'] },
   { name: 'document list', path: '/api/documents', permissions: ['documents.view'] },
+  { name: 'document employee directory', path: '/api/documents/directory', permissions: ['documents.view', 'documents.self'] },
   { name: 'own documents', path: '/api/documents/my', permissions: ['documents.self', 'documents.view'] },
   { name: 'pending verification', path: '/api/documents/pending-verification', permissions: ['documents.view'] },
   { name: 'document reports', path: '/api/documents/reports', permissions: ['documents.reports'] },

@@ -223,6 +223,137 @@ router.get(
 );
 
 router.get(
+  '/directory',
+  VIEW,
+  asyncHandler(async (req, res) => {
+    const scope = String(req.query.scope || 'all');
+    const filters = {
+      employeeId: req.query.employeeId || req.query.employee_id,
+      departmentId: req.query.departmentId || req.query.department_id,
+      categoryId: req.query.categoryId || req.query.category_id,
+      status: req.query.status,
+      expiryStatus: req.query.expiryStatus || req.query.expiry_status,
+      days: req.query.days,
+      search: req.query.search,
+      from: req.query.from,
+      to: req.query.to,
+      source: req.query.source,
+    };
+    const categories = await getCategoryMap();
+    const scopeEmployee = ownOnly(req) ? req.user.employeeId || -1 : null;
+
+    if (scope === 'missing') {
+      const allDocuments = await listAllDocuments(req, {}, { ownEmployeeId: scopeEmployee, categories });
+      const missing = await computeMissingDocuments({
+        ownEmployeeId: scopeEmployee,
+        documents: allDocuments,
+        categories,
+      });
+      let rows = filterRows(missing.rows, {
+        employeeId: filters.employeeId,
+        departmentId: filters.departmentId,
+        categoryId: filters.categoryId,
+        status: filters.status,
+        search: filters.search,
+      });
+      if (String(req.query.onlyMissing || '') === '1') {
+        rows = rows.filter((row) => row.status === 'missing' || row.status === 'rejected');
+      }
+
+      const byEmployee = new Map();
+      for (const row of rows) {
+        const id = Number(row.employee_id);
+        if (!byEmployee.has(id)) {
+          byEmployee.set(id, {
+            employee_id: row.employee_id,
+            employee_name: row.employee_name,
+            employee_code: row.employee_code,
+            avatar_color: row.avatar_color,
+            department_id: row.department_id,
+            department_name: row.department_name,
+            total: 0,
+            missing: 0,
+            pending: 0,
+            rejected: 0,
+            verified: 0,
+            expired: 0,
+            expiring: 0,
+            complete: missing.complete.get(row.employee_id) === true,
+            categories: new Set(),
+          });
+        }
+        const entry = byEmployee.get(id);
+        entry.total += 1;
+        if (row.status === 'missing') entry.missing += 1;
+        else if (row.status === 'pending') entry.pending += 1;
+        else if (row.status === 'rejected') entry.rejected += 1;
+        else if (row.status === 'verified') entry.verified += 1;
+        else if (row.status === 'expired') entry.expired += 1;
+        if (row.category_name) entry.categories.add(row.category_name);
+      }
+
+      const data = [...byEmployee.values()]
+        .map((entry) => ({ ...entry, categories: [...entry.categories] }))
+        .sort((a, b) => b.total - a.total || String(a.employee_name).localeCompare(String(b.employee_name)));
+      const counts = rows.reduce((acc, row) => {
+        acc[row.status] = (acc[row.status] || 0) + 1;
+        return acc;
+      }, {});
+      return res.json({
+        data,
+        totalEmployees: data.length,
+        totalRequirements: rows.length,
+        counts,
+        summary: {
+          requiredCategories: missing.required.length,
+          completeEmployees: missing.completeCount,
+          incompleteEmployees: missing.incompleteCount,
+        },
+      });
+    }
+
+    const documents = await listAllDocuments(req, filters, { ownEmployeeId: scopeEmployee, categories });
+    const byEmployee = new Map();
+    for (const doc of documents) {
+      const id = Number(doc.employee_id);
+      if (!byEmployee.has(id)) {
+        byEmployee.set(id, {
+          employee_id: doc.employee_id,
+          employee_name: doc.employee_name,
+          employee_code: doc.employee_code,
+          avatar_color: doc.avatar_color,
+          department_id: doc.department_id,
+          department_name: doc.department_name,
+          total: 0,
+          verified: 0,
+          pending: 0,
+          rejected: 0,
+          expiring: 0,
+          expired: 0,
+          last_uploaded_at: null,
+          categories: new Set(),
+        });
+      }
+      const entry = byEmployee.get(id);
+      entry.total += 1;
+      if (doc.status === 'verified') entry.verified += 1;
+      else if (doc.status === 'pending') entry.pending += 1;
+      else if (doc.status === 'rejected') entry.rejected += 1;
+      if (doc.expiry_status === 'expiring') entry.expiring += 1;
+      if (doc.expiry_status === 'expired') entry.expired += 1;
+      if (doc.category_name) entry.categories.add(doc.category_name);
+      const uploaded = doc.uploaded_at ? String(doc.uploaded_at) : '';
+      if (uploaded > (entry.last_uploaded_at || '')) entry.last_uploaded_at = uploaded;
+    }
+
+    const data = [...byEmployee.values()]
+      .map((entry) => ({ ...entry, categories: [...entry.categories] }))
+      .sort((a, b) => b.total - a.total || String(a.employee_name).localeCompare(String(b.employee_name)));
+    res.json({ data, totalEmployees: data.length, totalDocuments: documents.length });
+  })
+);
+
+router.get(
   '/my',
   requireAnyPermission('documents.self', 'documents.view'),
   asyncHandler(async (req, res) => {

@@ -389,7 +389,7 @@ export async function listAllDocuments(req, filters = {}, { ownEmployeeId = null
   let result = documents;
   if (expiryFilter) {
     result = result.filter((doc) => {
-      if (expiryFilter === 'expiring_soon') return doc.expiry_status === 'expiring';
+      if (expiryFilter === 'expiring_soon' || expiryFilter === 'expiring') return doc.expiry_status === 'expiring';
       if (expiryFilter === 'expired') return doc.expiry_status === 'expired';
       if (expiryFilter === 'valid') return doc.expiry_status === 'valid';
       if (expiryFilter === 'no_expiry') return doc.expiry_status === 'none';
