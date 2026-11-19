@@ -24,6 +24,25 @@ import { Badge, Button, Card, EmptyState, Input, LoadingBlock, Modal, SectionTit
 
 const CATEGORIES = ['PERSONAL INFORMATION', 'DOCUMENT VERIFICATION', 'EMPLOYMENT FORMALITIES'];
 
+/** Preselect the onboarding document type from the checklist task title. */
+function docTypeForTask(title = '') {
+  const t = String(title).toLowerCase();
+  if (t.includes('pan')) return 'pan_card';
+  if (t.includes('passport size') || t.includes('photograph')) return 'photograph';
+  if (t.includes('identity') || t.includes('aadhaar') || t.includes('passport')) return 'identity_proof';
+  if (t.includes('address')) return 'address_proof';
+  if (t.includes('education') || t.includes('degree') || t.includes('transcript') || t.includes('certificate')) {
+    return 'educational_certificate';
+  }
+  if (t.includes('offer letter')) return 'signed_offer_letter';
+  if (t.includes('agreement')) return 'employment_agreement';
+  if (t.includes('employment') || t.includes('relieving') || t.includes('payslip') || t.includes('experience')) {
+    return 'previous_employment';
+  }
+  if (t.includes('bank') || t.includes('cheque')) return 'bank_proof';
+  return 'other';
+}
+
 export default function OnboardingDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -327,7 +346,7 @@ export default function OnboardingDetail() {
                               setUploadModal({
                                 open: true,
                                 taskId: t.id,
-                                docType: 'identity_proof',
+                                docType: docTypeForTask(t.title),
                                 title: t.title,
                               })
                             }
@@ -448,7 +467,7 @@ export default function OnboardingDetail() {
                 setUploadModal({
                   open: true,
                   taskId: null,
-                  docType: 'identity_proof',
+                  docType: 'other',
                   title: 'New Document Upload',
                 })
               }
