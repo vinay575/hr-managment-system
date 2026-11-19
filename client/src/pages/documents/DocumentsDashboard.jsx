@@ -6,19 +6,20 @@ import {
   AlertTriangle,
   ArrowRight,
   CheckCircle2,
+  ChevronRight,
   Clock3,
   FileText,
   FolderPlus,
   ShieldCheck,
   UploadCloud,
-  UserCheck,
+  Users,
   XCircle,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../lib/api';
-import { Avatar, Button, Card, EmptyState, LoadingBlock, Progress, SectionTitle, StatCard } from '../../components/ui';
-import { DocumentDetailModal, DocumentRow, UploadDocumentModal } from './document-ui';
+import { Avatar, Button, Card, EmptyState, LoadingBlock, Progress, SearchInput, SectionTitle, StatCard } from '../../components/ui';
+import { DocumentDetailModal, EmployeeDocumentsModal, UploadDocumentModal } from './document-ui';
 
 const COLORS = ['#10b981', '#f59e0b', '#f43f5e', '#6366f1'];
 const RING = ['#6366f1', '#8b5cf6'];
@@ -30,24 +31,33 @@ export default function DocumentsDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [uploadEmployee, setUploadEmployee] = useState(null);
+  const [employeeFile, setEmployeeFile] = useState(null);
+  const [employeeSearch, setEmployeeSearch] = useState('');
   const [selected, setSelected] = useState(null);
+
+  const canManage = can('documents.manage');
+  const canVerify = can('documents.verify');
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [res, cats] = await Promise.all([
+      const [res, cats, emps] = await Promise.all([
         api.get('/documents/dashboard'),
         api.get('/documents/categories').catch(() => ({ data: [] })),
+        canManage ? api.get('/employees').catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
       ]);
       setData(res);
       setCategories(cats.data || []);
+      setEmployees(emps.data || []);
     } catch (err) {
       toast.error(err.message);
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, canManage]);
 
   useEffect(() => {
     load();
@@ -62,12 +72,17 @@ export default function DocumentsDashboard() {
     const total = Number(summary.employeesComplete || 0) + Number(summary.employeesIncomplete || 0);
     return total ? Math.round((Number(summary.employeesComplete || 0) / total) * 100) : 0;
   }, [summary]);
+  const employeeFiles = useMemo(() => data?.employeeFiles || [], [data]);
+  const visibleEmployees = useMemo(() => {
+    const q = employeeSearch.trim().toLowerCase();
+    if (!q) return employeeFiles;
+    return employeeFiles.filter((row) =>
+      `${row.employee_name} ${row.employee_code} ${row.department_name || ''}`.toLowerCase().includes(q)
+    );
+  }, [employeeFiles, employeeSearch]);
 
   if (loading && !data) return <LoadingBlock label="Loading document overview…" />;
   if (!data) return <EmptyState icon={FileText} title="Document overview unavailable" description="Please refresh the page or try again shortly." />;
-
-  const canManage = can('documents.manage');
-  const canVerify = can('documents.verify');
 
   return (
     <div className="space-y-5">
@@ -79,7 +94,18 @@ export default function DocumentsDashboard() {
         </div>
         <div className="flex flex-wrap gap-2">
           {canManage && <Button variant="secondary" icon={FolderPlus} onClick={() => navigate('/documents/categories')}>Categories</Button>}
-          {(canManage || user?.employeeId) && <Button variant="primary" icon={UploadCloud} onClick={() => setUploadOpen(true)}>Upload document</Button>}
+          {(canManage || user?.employeeId) && (
+            <Button
+              variant="primary"
+              icon={UploadCloud}
+              onClick={() => {
+                setUploadEmployee(null);
+                setUploadOpen(true);
+              }}
+            >
+              Upload document
+            </Button>
+          )}
         </div>
       </div>
 
@@ -222,25 +248,87 @@ export default function DocumentsDashboard() {
 
       <Card className="p-5">
         <SectionTitle
-          title="Recent uploads"
-          description="Latest documents across every lifecycle stage"
-          action={<Link to="/documents/all" className="text-[11.5px] font-semibold text-brand-600">All documents</Link>}
+          title="Employee files"
+          description="Select an employee to view only the documents they have submitted."
+          action={
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+              <SearchInput
+                value={employeeSearch}
+                onChange={(e) => setEmployeeSearch(e.target.value)}
+                placeholder="Search employees…"
+                className="w-full sm:w-[240px]"
+              />
+              <Link to="/documents/all" className="text-[11.5px] font-semibold text-brand-600 hover:text-brand-700">All documents</Link>
+            </div>
+          }
         />
-        <div className="mt-4 space-y-2">
-          {data.recent?.length ? (
-            data.recent.map((doc) => <DocumentRow key={doc.uid} doc={doc} onOpen={(d) => setSelected(d.uid)} />)
-          ) : (
-            <EmptyState icon={FileText} title="No documents yet" description="Upload the first employee document to begin the central history." action={(canManage || user?.employeeId) ? <Button variant="primary" icon={UploadCloud} onClick={() => setUploadOpen(true)}>Upload document</Button> : null} />
-          )}
-        </div>
+        {visibleEmployees.length ? (
+          <div className="mt-4 grid grid-cols-1 gap-2.5 md:grid-cols-2 xl:grid-cols-3">
+            {visibleEmployees.map((emp) => (
+              <button
+                key={emp.employee_id}
+                type="button"
+                onClick={() => setEmployeeFile(emp)}
+                className="flex w-full items-center gap-3 rounded-xl border border-slate-100 bg-white px-3.5 py-3 text-left transition hover:border-brand-200 hover:bg-brand-50/20"
+              >
+                <Avatar name={emp.employee_name} color={emp.avatar_color || 'indigo'} size="sm" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[12.5px] font-semibold text-ink-900">{emp.employee_name}</span>
+                  <span className="block truncate text-[10.5px] text-slate-400">
+                    {emp.employee_code || 'No employee ID'}{emp.department_name ? ` · ${emp.department_name}` : ''}
+                  </span>
+                  <span className="mt-1.5 flex flex-wrap items-center gap-1">
+                    {emp.complete && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">Complete</span>}
+                    {emp.pending > 0 && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">{emp.pending} pending</span>}
+                    {emp.missing > 0 && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">{emp.missing} missing</span>}
+                    {emp.expired > 0 && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-700">{emp.expired} expired</span>}
+                    {!emp.total && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">No uploads</span>}
+                  </span>
+                </span>
+                <span className="shrink-0 text-right">
+                  <span className="block text-[14px] font-extrabold text-ink-900">{emp.total}</span>
+                  <span className="block text-[10px] text-slate-400">file{emp.total === 1 ? '' : 's'}</span>
+                </span>
+                <ChevronRight size={15} className="shrink-0 text-slate-300" />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            icon={Users}
+            title={employeeSearch ? 'No employees match this search' : 'No employees yet'}
+            description={
+              employeeSearch
+                ? 'Try a different name, employee ID or department.'
+                : 'Add employees to begin collecting and reviewing document files.'
+            }
+            action={employeeSearch ? <Button variant="secondary" onClick={() => setEmployeeSearch('')}>Clear search</Button> : null}
+            className="py-12"
+          />
+        )}
       </Card>
 
       <UploadDocumentModal
         open={uploadOpen}
-        onClose={() => setUploadOpen(false)}
+        onClose={() => {
+          setUploadOpen(false);
+          setUploadEmployee(null);
+        }}
         onSaved={load}
         categories={categories}
-        fixedEmployeeId={canManage ? null : user?.employeeId || null}
+        employees={employees}
+        fixedEmployeeId={uploadEmployee || (canManage ? null : user?.employeeId || null)}
+      />
+      <EmployeeDocumentsModal
+        open={Boolean(employeeFile)}
+        employee={employeeFile}
+        onClose={() => setEmployeeFile(null)}
+        onOpenDocument={(uid) => setSelected(uid)}
+        onUpload={(emp) => {
+          setUploadEmployee(emp?.employee_id || null);
+          setEmployeeFile(null);
+          setUploadOpen(true);
+        }}
       />
       <DocumentDetailModal open={Boolean(selected)} uid={selected} onClose={() => setSelected(null)} onChanged={load} />
     </div>

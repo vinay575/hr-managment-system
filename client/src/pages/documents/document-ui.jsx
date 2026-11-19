@@ -19,8 +19,10 @@ import { useToast } from '../../context/ToastContext';
 import {
   Avatar,
   Button,
+  EmptyState,
   Field,
   Input,
+  LoadingBlock,
   Modal,
   Select,
   Textarea,
@@ -587,6 +589,126 @@ function Info({ label, children }) {
       <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
       <div className="mt-0.5 text-[12px] font-medium text-ink-800">{children}</div>
     </div>
+  );
+}
+
+export function EmployeeDocumentsModal({ open, employee, onClose, onOpenDocument, onUpload }) {
+  const { can } = useAuth();
+  const employeeId = employee?.employee_id ?? employee?.id;
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const load = useCallback(async () => {
+    if (!employeeId) return;
+    setLoading(true);
+    setError('');
+    try {
+      setData(await api.get(`/documents/employee/${employeeId}/summary`));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [employeeId]);
+
+  useEffect(() => {
+    if (open && employeeId) load();
+    if (!open) {
+      setData(null);
+      setError('');
+    }
+  }, [open, employeeId, load]);
+
+  const canManage = can('documents.manage');
+  const documents = data?.documents || [];
+  const summary = data?.summary || {};
+  const outstanding = (data?.required || []).filter((row) => row.status === 'missing' || row.status === 'rejected');
+
+  const upload = () => {
+    onUpload?.(employee);
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={employee?.employee_name || 'Employee documents'}
+      subtitle={employee ? `${employee.employee_code || 'No employee ID'}${employee.department_name ? ` · ${employee.department_name}` : ''}` : 'Loading…'}
+      icon={FileText}
+      size="xl"
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>Close</Button>
+          {canManage && (
+            <Button variant="primary" icon={UploadCloud} onClick={upload}>Upload document</Button>
+          )}
+        </>
+      }
+    >
+      {loading ? (
+        <LoadingBlock label="Loading employee documents…" className="py-12" />
+      ) : error ? (
+        <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-[12px] text-rose-700">{error}</div>
+      ) : (
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            <div className="rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Submitted</p>
+              <p className="mt-0.5 text-[18px] font-extrabold text-ink-900">{documents.length}</p>
+            </div>
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-600">Verified</p>
+              <p className="mt-0.5 text-[18px] font-extrabold text-emerald-700">{summary.verified || 0}</p>
+            </div>
+            <div className="rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-600">Pending / review</p>
+              <p className="mt-0.5 text-[18px] font-extrabold text-amber-700">{(summary.pending || 0) + (summary.rejected || 0)}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Missing required</p>
+              <p className="mt-0.5 text-[18px] font-extrabold text-ink-900">{summary.missing || 0}</p>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[12.5px] font-bold text-ink-900">Submitted documents</p>
+              <p className="text-[11px] text-slate-400">{documents.length} file{documents.length === 1 ? '' : 's'}</p>
+            </div>
+            {documents.length ? (
+              <div className="mt-3 space-y-2">
+                {documents.map((doc) => (
+                  <DocumentRow key={doc.uid} doc={doc} showEmployee={false} onOpen={(item) => onOpenDocument?.(item.uid)} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={FileText}
+                title="No documents submitted yet"
+                description={`${employee?.employee_name || 'This employee'} has not uploaded any documents yet.`}
+                action={canManage ? <Button variant="primary" icon={UploadCloud} onClick={upload}>Upload first document</Button> : null}
+                className="mt-3 py-10"
+              />
+            )}
+          </div>
+
+          {outstanding.length > 0 && (
+            <div className="rounded-xl border border-amber-100 bg-amber-50/40 p-3.5">
+              <p className="text-[11.5px] font-bold text-amber-800">Outstanding required documents</p>
+              <div className="mt-2 space-y-1.5">
+                {outstanding.map((row) => (
+                  <div key={`${row.employee_id}-${row.category_id}`} className="flex items-center justify-between gap-3 text-[11.5px]">
+                    <span className="min-w-0 truncate text-amber-800">{row.category_name}</span>
+                    <StatusPill status={row.status} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </Modal>
   );
 }
 

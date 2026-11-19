@@ -124,7 +124,50 @@ router.get(
       ).length,
     }));
 
+    // Employee-first view: the dashboard lists people, not a flat document log.
+    // Each row carries enough counters to see file health at a glance; the
+    // employee summary endpoint then returns only that person's documents.
+    const byEmployee = new Map();
+    for (const doc of documents) {
+      const key = Number(doc.employee_id);
+      if (!byEmployee.has(key)) byEmployee.set(key, []);
+      byEmployee.get(key).push(doc);
+    }
+    const outstandingByEmployee = new Map();
+    for (const row of missing.rows) {
+      if (row.status !== 'missing' && row.status !== 'rejected') continue;
+      const key = Number(row.employee_id);
+      outstandingByEmployee.set(key, (outstandingByEmployee.get(key) || 0) + 1);
+    }
+    const employeeFiles = missing.employees
+      .map((emp) => {
+        const docs = byEmployee.get(Number(emp.id)) || [];
+        const lastUploadedAt = docs.reduce((latest, doc) => {
+          const value = doc.uploaded_at ? String(doc.uploaded_at) : '';
+          return value > latest ? value : latest;
+        }, '');
+        return {
+          employee_id: emp.id,
+          employee_name: emp.employee_name,
+          employee_code: emp.employee_code,
+          avatar_color: emp.avatar_color,
+          department_id: emp.department_id,
+          department_name: emp.department_name,
+          total: docs.length,
+          verified: docs.filter((d) => d.status === 'verified').length,
+          pending: docs.filter((d) => d.status === 'pending').length,
+          rejected: docs.filter((d) => d.status === 'rejected').length,
+          expiring: docs.filter((d) => d.expiry_status === 'expiring').length,
+          expired: docs.filter((d) => d.expiry_status === 'expired').length,
+          missing: outstandingByEmployee.get(Number(emp.id)) || 0,
+          complete: missing.complete.get(emp.id) === true,
+          last_uploaded_at: lastUploadedAt || null,
+        };
+      })
+      .sort((a, b) => b.total - a.total || String(a.employee_name).localeCompare(String(b.employee_name)));
+
     res.json({
+      employeeFiles,
       summary,
       verificationSummary: [
         { key: 'verified', label: 'Verified', count: summary.verified },
