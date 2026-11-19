@@ -1,8 +1,8 @@
-# Aurora HR
+# Kodewar HRMS
 
 **A complete people-operations platform — from the first job posting to the final relieving letter.**
 
-Aurora HR is a full-stack HR management system with a React front end and an Express + MySQL API. It covers the entire employee lifecycle: recruitment, onboarding, core HR, attendance, leave, payroll, expenses, performance, offboarding, and system administration.
+Kodewar HRMS is a full-stack HR management system with a React front end and an Express + MySQL API. It covers the entire employee lifecycle: recruitment, onboarding, core HR, attendance, leave, payroll, expenses, performance, offboarding, and system administration.
 
 > **Stack:** React 18 · Vite · Tailwind CSS · Express · MySQL2 (TiDB compatible) · JWT auth · PDFKit
 
@@ -10,7 +10,7 @@ Aurora HR is a full-stack HR management system with a React front end and an Exp
 
 ## Contents
 
-1. [What is Aurora HR?](#1-what-is-aurora-hr)
+1. [What is Kodewar HRMS?](#1-what-is-kodewar-hrms)
 2. [Feature catalogue](#2-feature-catalogue)
 3. [Roles at a glance](#3-roles-at-a-glance)
 4. [Full access matrix](#4-full-access-matrix)
@@ -25,9 +25,9 @@ Aurora HR is a full-stack HR management system with a React front end and an Exp
 
 ---
 
-## 1. What is Aurora HR?
+## 1. What is Kodewar HRMS?
 
-Aurora HR gives every person in the company a workspace that matches their job:
+Kodewar HRMS gives every person in the company a workspace that matches their job:
 
 - **Employees** get self-service: clock in/out, request leave, view payslips, submit expenses, update goals, complete onboarding, and download exit documents.
 - **Managers and HR** get operational tools: people records, approvals, payroll, hiring, onboarding, performance cycles, and reports.
@@ -499,7 +499,7 @@ flowchart TD
 3. **HR** schedules interviews; interviewers record scores and feedback.
 4. **HR** moves the candidate to *selected*, creates the offer, previews the PDF, and emails it.
 5. The **candidate** opens the tokenised portal link, reviews and accepts — or declines with a reason.
-6. On acceptance, Aurora HR creates the onboarding record, checklist tasks, and the linked employee record in **probation**, then emails an onboarding link.
+6. On acceptance, Kodewar HRMS creates the onboarding record, checklist tasks, and the linked employee record in **probation**, then emails an onboarding link.
 7. The **candidate** submits personal, education, and bank details and uploads documents in the portal.
 8. **HR** verifies each document, resolves rejections, and finalises onboarding.
 9. The employee becomes **active**, appears in the employee directory, and is eligible for payroll.
@@ -778,4 +778,4 @@ Useful to know before deploying:
 
 ---
 
-Built with care — **Aurora HR**, people beautifully managed.
+Built with care — **Kodewar HRMS**, people beautifully managed.
