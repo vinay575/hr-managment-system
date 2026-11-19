@@ -362,7 +362,7 @@ export function AnnouncementDetailModal({ open, id, onClose, onChanged, onEdit, 
   const acknowledge = async () => {
     setBusy(true);
     try {
-      const res = await api.post(`/announcements/${announcement.id}/acknowledge`);
+      const res = await api.post(`/announcements/my/${announcement.id}/acknowledge`);
       toast.success(res.message || 'Announcement acknowledged.');
       await load();
       onAcknowledge?.();
