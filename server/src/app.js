@@ -17,6 +17,7 @@ import offboardingRoutes from './routes/offboarding.js';
 import candidatePortalRoutes from './routes/candidate-portal.js';
 import expenseRoutes from './routes/expenses.js';
 import performanceRoutes from './routes/performance.js';
+import documentRoutes from './routes/documents.js';
 
 export function createApp() {
   const app = express();
@@ -45,6 +46,7 @@ export function createApp() {
   app.use('/api/portal/candidate', candidatePortalRoutes);
   app.use('/api/expenses', expenseRoutes);
   app.use('/api/performance', performanceRoutes);
+  app.use('/api/documents', documentRoutes);
 
   app.use('/api', (req, res) => res.status(404).json({ message: 'Endpoint not found.' }));
 

@@ -42,6 +42,9 @@ function notificationPermission(req, item) {
       ? 'performance.goals.self'
       : first('performance.goals.view', 'performance.goals.manage');
   }
+  if (id.startsWith('docmy-')) return 'documents.self';
+  if (id.startsWith('docqueue-')) return 'documents.verify';
+  if (id.startsWith('docmgr-')) return 'documents.view';
   return null;
 }
 
@@ -449,6 +452,88 @@ router.get(
           title: c.status === 'active' ? 'Review cycle in progress' : 'Review cycle scheduled',
           body: `${c.cycle_name} · ${String(c.start_date).slice(0, 10)} → ${String(c.end_date).slice(0, 10)}`,
           to: `/performance/review-history?cycle=${c.id}`,
+        });
+      }
+    }
+
+    /* Documents — personal verification and expiry updates. */
+    if (req.user.employeeId && req.permissions.includes('documents.self')) {
+      const [docUpdates] = await pool.query(
+        `SELECT h.id AS history_id, h.action, h.created_at, d.id, d.name
+         FROM document_verification_history h
+         JOIN employee_documents d ON d.id = h.document_id
+         WHERE d.employee_id = ? AND h.action IN ('verified','rejected')
+         ORDER BY h.created_at DESC LIMIT 3`,
+        [req.user.employeeId]
+      );
+      for (const d of docUpdates) {
+        items.push({
+          id: `docmy-${d.action}-${d.history_id}`,
+          type: 'document',
+          title: d.action === 'verified' ? 'Document verified' : 'Document rejected',
+          body: d.name,
+          to: '/documents/my',
+        });
+      }
+
+      const [expiringDocs] = await pool.query(
+        `SELECT id, name, expiry_date, DATEDIFF(expiry_date, CURDATE()) AS days_left
+         FROM employee_documents
+         WHERE employee_id = ? AND status = 'verified' AND expiry_date IS NOT NULL
+           AND expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+         ORDER BY expiry_date LIMIT 2`,
+        [req.user.employeeId]
+      );
+      for (const d of expiringDocs) {
+        items.push({
+          id: `docmy-expiry-${d.id}`,
+          type: 'document',
+          title: Number(d.days_left) < 0 ? 'Document expired' : 'Document expiring soon',
+          body: `${d.name} · ${String(d.expiry_date).slice(0, 10)}`,
+          to: '/documents/my',
+        });
+      }
+    }
+
+    /* Documents — verification queue and organisation-wide expiry signals. */
+    if (req.permissions.includes('documents.view') || req.permissions.includes('documents.verify')) {
+      const [pendingDocs] = await pool.query(
+        `SELECT d.id, d.name, CONCAT(e.first_name,' ',e.last_name) AS employee
+         FROM employee_documents d JOIN hrm_employees e ON e.id = d.employee_id
+         WHERE d.status = 'pending' ORDER BY d.created_at ASC LIMIT 3`
+      );
+      for (const d of pendingDocs) {
+        items.push({
+          id: `docqueue-${d.id}`,
+          type: 'document',
+          title: 'Document pending verification',
+          body: `${d.employee} · ${d.name}`,
+          to: '/documents/pending-verification',
+        });
+      }
+      const [[docCounts]] = await pool.query(
+        `SELECT
+           SUM(status = 'pending') AS pending,
+           SUM(expiry_date IS NOT NULL AND status = 'verified' AND expiry_date < CURDATE()) AS expired,
+           SUM(expiry_date IS NOT NULL AND status = 'verified' AND expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)) AS expiring
+         FROM employee_documents`
+      );
+      if (Number(docCounts?.expired)) {
+        items.push({
+          id: 'docmgr-expired',
+          type: 'document',
+          title: 'Employee documents expired',
+          body: `${docCounts.expired} verified document${Number(docCounts.expired) === 1 ? '' : 's'} have expired`,
+          to: '/documents/expiring',
+        });
+      }
+      if (Number(docCounts?.expiring)) {
+        items.push({
+          id: 'docmgr-expiring',
+          type: 'document',
+          title: 'Documents expiring soon',
+          body: `${docCounts.expiring} document${Number(docCounts.expiring) === 1 ? '' : 's'} expire in the next 30 days`,
+          to: '/documents/expiring',
         });
       }
     }

@@ -47,6 +47,15 @@ const ReviewCycles = lazy(() => import('./pages/performance/ReviewCycles'));
 const ReviewHistory = lazy(() => import('./pages/performance/ReviewHistory'));
 const PerformanceReports = lazy(() => import('./pages/performance/PerformanceReports'));
 const Notifications = lazy(() => import('./pages/Notifications'));
+const DocumentsDashboard = lazy(() => import('./pages/documents/DocumentsDashboard'));
+const AllDocuments = lazy(() => import('./pages/documents/AllDocuments'));
+const MyDocuments = lazy(() => import('./pages/documents/MyDocuments'));
+const PendingVerification = lazy(() => import('./pages/documents/PendingVerification'));
+const ExpiringDocuments = lazy(() => import('./pages/documents/ExpiringDocuments'));
+const MissingDocuments = lazy(() => import('./pages/documents/MissingDocuments'));
+const DocumentCategories = lazy(() => import('./pages/documents/DocumentCategories'));
+const DocumentReports = lazy(() => import('./pages/documents/DocumentReports'));
+const DocumentSettings = lazy(() => import('./pages/documents/DocumentSettings'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -139,6 +148,17 @@ export default function App() {
                 <Route path="performance/review-cycles" element={<Protected permission={['performance.reviews.view', 'performance.reviews.manage']}><ReviewCycles /></Protected>} />
                 <Route path="performance/review-history" element={<Protected permission={['performance.reviews.view', 'performance.reviews.manage']}><ReviewHistory /></Protected>} />
                 <Route path="performance/reports" element={<Protected permission="performance.reports"><PerformanceReports /></Protected>} />
+
+                {/* Phase 6: Employee Document Management */}
+                <Route path="documents" element={<Protected permission={['documents.view', 'documents.self']}><DocumentsDashboard /></Protected>} />
+                <Route path="documents/all" element={<Protected permission="documents.view"><AllDocuments /></Protected>} />
+                <Route path="documents/my" element={<Protected permission="documents.self"><MyDocuments /></Protected>} />
+                <Route path="documents/pending-verification" element={<Protected permission="documents.view"><PendingVerification /></Protected>} />
+                <Route path="documents/expiring" element={<Protected permission={['documents.view', 'documents.self']}><ExpiringDocuments /></Protected>} />
+                <Route path="documents/missing" element={<Protected permission={['documents.view', 'documents.manage']}><MissingDocuments /></Protected>} />
+                <Route path="documents/categories" element={<Protected permission="documents.categories.manage"><DocumentCategories /></Protected>} />
+                <Route path="documents/reports" element={<Protected permission="documents.reports"><DocumentReports /></Protected>} />
+                <Route path="documents/settings" element={<Protected permission="documents.settings"><DocumentSettings /></Protected>} />
                 </Route>
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />

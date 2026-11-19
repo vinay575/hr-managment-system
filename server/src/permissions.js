@@ -123,6 +123,15 @@ export const PERMISSIONS = [
   { key: 'offboarding.manage', label: 'Manage offboarding', module: 'Offboarding', description: 'Approve resignations and issue exit documents.' },
   { key: 'offboarding.self', label: 'Own resignation', module: 'Offboarding', description: 'Submit resignation and view exit documents.' },
 
+  // Employee Documents
+  { key: 'documents.view', label: 'View all documents', module: 'Documents', description: 'Browse employee documents, verification status and expiry across the organisation.' },
+  { key: 'documents.manage', label: 'Manage documents', module: 'Documents', description: 'Upload, edit, replace, delete and remind on employee documents.' },
+  { key: 'documents.verify', label: 'Verify documents', module: 'Documents', description: 'Verify or reject employee documents with a recorded reason.' },
+  { key: 'documents.categories.manage', label: 'Manage document categories', module: 'Documents', description: 'Create, edit, activate and configure required document categories.' },
+  { key: 'documents.reports', label: 'View document reports', module: 'Documents', description: 'Access document completeness, expiry and verification reports and exports.' },
+  { key: 'documents.settings', label: 'Manage document settings', module: 'Documents', description: 'Configure upload limits, verification defaults and reminder intervals.' },
+  { key: 'documents.self', label: 'Own documents', module: 'Documents', description: 'View, upload, replace and download personal employee documents.' },
+
   // System
   { key: 'users.manage', label: 'Manage users', module: 'System', description: 'Create users and assign roles and access.' },
   { key: 'roles.manage', label: 'Manage roles & permissions', module: 'System', description: 'Configure module-level permissions per role.' },
@@ -160,6 +169,9 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'recruitment.reports.view',
     'onboarding.view',
     'offboarding.view',
+    'documents.view',
+    'documents.reports',
+    'documents.self',
     'settings.self',
   ],
   administration: [
@@ -184,6 +196,11 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'performance.reports',
     'reports.view',
     'recruitment.view',
+    'documents.view',
+    'documents.manage',
+    'documents.verify',
+    'documents.reports',
+    'documents.self',
     'settings.self',
   ],
   hr: [
@@ -228,6 +245,13 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'onboarding.manage',
     'offboarding.view',
     'offboarding.manage',
+    'documents.view',
+    'documents.manage',
+    'documents.verify',
+    'documents.categories.manage',
+    'documents.reports',
+    'documents.settings',
+    'documents.self',
     'settings.self',
   ],
   employee: [
@@ -240,6 +264,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'performance.reviews.view',
     'onboarding.self',
     'offboarding.self',
+    'documents.self',
     'settings.self',
   ],
 };

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import {
   ArrowUpRight,
@@ -6,6 +7,7 @@ import {
   Building2,
   CalendarDays,
   Clock3,
+  FileText,
   KeyRound,
   LayoutGrid,
   List,
@@ -45,6 +47,7 @@ import {
   TONE,
   capitalize,
 } from '../components/ui';
+import { DocumentDetailModal, DocumentRow } from './documents/document-ui';
 
 const STATUSES = ['active', 'probation', 'on-leave', 'inactive'];
 const EMP_TYPES = ['full-time', 'part-time', 'contract', 'intern'];
@@ -568,18 +571,36 @@ function EmployeeForm({ open, onClose, editing, departments, onSaved }) {
 /*  Profile drawer                                                     */
 /* ------------------------------------------------------------------ */
 function ProfileModal({ id, onClose, onEdit, manager }) {
+  const { can } = useAuth();
   const [data, setData] = useState(null);
   const [tab, setTab] = useState('overview');
   const [loading, setLoading] = useState(true);
+  const [docSummary, setDocSummary] = useState(null);
+  const [docUid, setDocUid] = useState(null);
 
   useEffect(() => {
     api.get(`/employees/${id}`).then(setData).catch(() => {}).finally(() => setLoading(false));
   }, [id]);
 
+  const canViewDocuments = can('documents.view');
+
+  useEffect(() => {
+    if (tab !== 'documents' || !canViewDocuments) return;
+    let cancelled = false;
+    api
+      .get(`/documents/employee/${id}/summary`)
+      .then((res) => !cancelled && setDocSummary(res))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, id, canViewDocuments]);
+
   const emp = data?.employee;
   const att = data?.attendanceStats;
 
   return (
+    <>
     <Modal open onClose={onClose} size="xl" title={emp ? `${emp.first_name} ${emp.last_name}` : 'Employee profile'} subtitle={emp ? `${emp.designation} · ${emp.department_name || 'Unassigned'}` : 'Loading…'} icon={Users}
       footer={manager && emp ? <Button variant="primary" icon={Pencil} onClick={() => onEdit(emp)}>Edit employee</Button> : null}
     >
@@ -633,6 +654,7 @@ function ProfileModal({ id, onClose, onEdit, manager }) {
               { key: 'attendance', label: 'Attendance', count: data.attendance.length },
               { key: 'leaves', label: 'Leave', count: data.leaves.length },
               { key: 'payroll', label: 'Payroll', count: data.payroll.length },
+              ...(canViewDocuments ? [{ key: 'documents', label: 'Documents', count: docSummary?.summary?.total ?? 0 }] : []),
             ]}
           />
 
@@ -731,8 +753,73 @@ function ProfileModal({ id, onClose, onEdit, manager }) {
               </table>
             </div>
           )}
+
+          {tab === 'documents' && (
+            <div className="space-y-4">
+              {!docSummary ? (
+                <LoadingBlock label="Loading documents…" className="py-12" />
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                    {[
+                      ['Total', docSummary.summary.total, 'text-ink-900'],
+                      ['Verified', docSummary.summary.verified, 'text-emerald-600'],
+                      ['Pending', docSummary.summary.pending, 'text-amber-600'],
+                      ['Expired', docSummary.summary.expired, 'text-rose-600'],
+                      ['Missing', docSummary.summary.missing, 'text-slate-600'],
+                    ].map(([label, value, tone]) => (
+                      <div key={label} className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+                        <p className={clsx('mt-0.5 font-display text-[18px] font-extrabold', tone)}>{value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="flex items-center gap-1.5 text-[12px] font-bold text-ink-900"><FileText size={14} /> Central document history</p>
+                    {docSummary.summary.complete ? (
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10.5px] font-semibold text-emerald-700">Required file complete</span>
+                    ) : (
+                      <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10.5px] font-semibold text-amber-700">Required file incomplete</span>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    {docSummary.documents?.length ? (
+                      docSummary.documents.slice(0, 20).map((doc) => (
+                        <DocumentRow key={doc.uid} doc={doc} showEmployee={false} onOpen={(d) => setDocUid(d.uid)} />
+                      ))
+                    ) : (
+                      <p className="rounded-xl border border-dashed border-slate-200 py-8 text-center text-[12px] text-slate-400">No documents recorded for this employee yet.</p>
+                    )}
+                  </div>
+
+                  {docSummary.required?.length > 0 && (
+                    <div className="rounded-xl border border-slate-100 p-4">
+                      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Required documents</p>
+                      <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {docSummary.required.map((row) => (
+                          <div key={row.category_id} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-2">
+                            <span className="truncate text-[11.5px] text-ink-700">{row.category_name}</span>
+                            <Badge status={row.status === 'verified' ? 'active' : row.status === 'pending' ? 'pending' : 'inactive'}>{row.status}</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-2">
+                    <Link to="/documents/my" className="btn-secondary px-3 py-2 text-[11.5px]">Open my documents</Link>
+                    {can('documents.manage') && <Link to="/documents/all" className="btn-secondary px-3 py-2 text-[11.5px]">All documents</Link>}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       )}
     </Modal>
+    <DocumentDetailModal open={Boolean(docUid)} uid={docUid} onClose={() => setDocUid(null)} />
+    </>
   );
 }

@@ -233,6 +233,18 @@ router.delete(
     const [users] = await pool.query('SELECT id FROM hrm_users WHERE employee_id = ?', [id]);
     if (users.length)
       throw new ApiError(400, 'This employee has a login account. Deactivate them instead of deleting.');
+    // Preserve the central document history: deletion would orphan private files.
+    const [[docCount]] = await pool.query(
+      `SELECT
+         (SELECT COUNT(*) FROM employee_documents WHERE employee_id = ?) +
+         (SELECT COUNT(*) FROM onboarding_documents od
+            JOIN onboarding_records r ON r.id = od.onboarding_id
+            WHERE r.employee_id = ?) AS count`,
+      [id, id]
+    );
+    if (Number(docCount?.count)) {
+      throw new ApiError(400, 'This employee has document records. Deactivate them instead of deleting so the document history is preserved.');
+    }
     const [[existing]] = await pool.query('SELECT first_name, last_name FROM hrm_employees WHERE id = ?', [id]);
     const [result] = await pool.query('DELETE FROM hrm_employees WHERE id = ?', [id]);
     if (!result.affectedRows) throw new ApiError(404, 'Employee not found.');

@@ -13,6 +13,9 @@ import {
   ClipboardCheck,
   ClipboardList,
   FileSignature,
+  FileText,
+  FileWarning,
+  FolderOpen,
   GitBranch,
   History,
   LayoutDashboard,
@@ -96,6 +99,20 @@ const NAV = [
     ],
   },
   {
+    section: 'Documents',
+    items: [
+      { to: '/documents', label: 'Document dashboard', icon: FileText, end: true, permission: ['documents.view', 'documents.self'] },
+      { to: '/documents/all', label: 'All documents', icon: FolderOpen, permission: 'documents.view' },
+      { to: '/documents/my', label: 'My documents', icon: FileSignature, permission: 'documents.self' },
+      { to: '/documents/pending-verification', label: 'Pending verification', icon: ClipboardCheck, permission: 'documents.view' },
+      { to: '/documents/expiring', label: 'Expiring documents', icon: CalendarClock, permission: ['documents.view', 'documents.self'] },
+      { to: '/documents/missing', label: 'Missing documents', icon: FileWarning, permission: ['documents.view', 'documents.manage'] },
+      { to: '/documents/categories', label: 'Document categories', icon: ClipboardList, permission: 'documents.categories.manage' },
+      { to: '/documents/reports', label: 'Document reports', icon: BarChart3, permission: 'documents.reports' },
+      { to: '/documents/settings', label: 'Document settings', icon: Settings, permission: 'documents.settings' },
+    ],
+  },
+  {
     section: 'Insights',
     items: [{ to: '/reports', label: 'Reports', icon: BarChart3, permission: 'reports.view' }],
   },
@@ -154,6 +171,15 @@ const PAGE_META = {
   '/performance/review-cycles': { title: 'Review cycles', subtitle: 'Organise periodic goal reviews without the assessment paperwork.' },
   '/performance/review-history': { title: 'Review history', subtitle: 'Completed and historical review cycle summaries.' },
   '/performance/reports': { title: 'Performance reports', subtitle: 'Goal, employee, department and review cycle reporting.' },
+  '/documents': { title: 'Document dashboard', subtitle: 'Verification, completeness and expiry at a glance.' },
+  '/documents/all': { title: 'All documents', subtitle: 'Every employee document in one central, private history.' },
+  '/documents/my': { title: 'My documents', subtitle: 'Your personal file, verification status and required uploads.' },
+  '/documents/pending-verification': { title: 'Pending verification', subtitle: 'Review uploaded files and record a clear decision.' },
+  '/documents/expiring': { title: 'Expiring documents', subtitle: 'Renewal tracking, expiry reminders and overdue files.' },
+  '/documents/missing': { title: 'Missing documents', subtitle: 'Required categories outstanding across employee files.' },
+  '/documents/categories': { title: 'Document categories', subtitle: 'Required types, expiry rules and verification behaviour.' },
+  '/documents/reports': { title: 'Document reports', subtitle: 'Completeness, verification and expiry reporting with CSV export.' },
+  '/documents/settings': { title: 'Document settings', subtitle: 'Upload limits, formats, verification and reminder policy.' },
 };
 
 const resolveMeta = (pathname) => {

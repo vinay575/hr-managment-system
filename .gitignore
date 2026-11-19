@@ -1,5 +1,6 @@
 node_modules/
 client/dist/
+server/uploads/
 coverage/
 playwright-report/
 playwright-report-e2e/

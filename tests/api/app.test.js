@@ -64,6 +64,13 @@ const roleMatrix = [
   { name: 'performance goals', path: '/api/performance/goals', permissions: ['performance.goals.view', 'performance.goals.manage', 'performance.goals.self'] },
   { name: 'review cycles', path: '/api/performance/review-cycles', permissions: ['performance.reviews.view', 'performance.reviews.manage'] },
   { name: 'performance reports', path: '/api/performance/reports/goals', permissions: ['performance.reports'] },
+  { name: 'document dashboard', path: '/api/documents/dashboard', permissions: ['documents.view', 'documents.self'] },
+  { name: 'document list', path: '/api/documents', permissions: ['documents.view'] },
+  { name: 'own documents', path: '/api/documents/my', permissions: ['documents.self', 'documents.view'] },
+  { name: 'pending verification', path: '/api/documents/pending-verification', permissions: ['documents.view'] },
+  { name: 'document reports', path: '/api/documents/reports', permissions: ['documents.reports'] },
+  { name: 'document settings', path: '/api/documents/settings', permissions: ['documents.settings'] },
+  { name: 'document categories', path: '/api/documents/categories', permissions: ['documents.view', 'documents.self', 'documents.manage', 'documents.categories.manage'] },
 ];
 
 beforeAll(async () => {
