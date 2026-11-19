@@ -747,6 +747,8 @@ Every module route is protected by a permission guard (`requirePermission` or `r
 - **Permission checks on both sides** — sidebar visibility and page guards on the client, route guards on the server.
 - **Super Admin bypass** is explicit and the role is locked; roles are otherwise fully data-driven.
 - **Self-scoping** for employees on attendance, leave, payroll, expenses, goals, onboarding, and offboarding.
+- **Onboarding record ownership** — employees can only edit their own onboarding details and documents; read-only onboarding roles (such as CEO) cannot change records or see internal templates.
+- **Salary visibility** follows payroll permission everywhere, including onboarding records, so a role without payroll access cannot see pay through an employee profile or onboarding screen.
 - **No self-approval** of expense claims; expense approvals are also excluded from the approver’s own queue.
 - **No last-admin removal** — the final active Super Admin cannot be deactivated, demoted, or deleted.
 - **No self-deletion or self-deactivation.**

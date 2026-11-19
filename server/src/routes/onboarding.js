@@ -10,7 +10,19 @@ const router = Router();
 router.use(authenticate);
 
 const VIEW = requireAnyPermission('onboarding.view', 'onboarding.manage', 'onboarding.self');
+const VIEW_ADMIN = requireAnyPermission('onboarding.view', 'onboarding.manage');
 const MANAGE = requirePermission('onboarding.manage');
+
+// Onboarding records can be edited by HR/Admin (manage) or by the employee
+// the record belongs to. Read-only roles such as CEO must not be able to
+// change another person's details or documents.
+function assertCanEditRecord(req, record) {
+  const canManage = req.permissions.includes('onboarding.manage');
+  const isOwner = req.user.role === 'employee' && req.user.employeeId === record.employee_id;
+  if (!canManage && !isOwner) {
+    throw new ApiError(403, 'You can only update your own onboarding record.');
+  }
+}
 
 // These mirror the database enums. Validating before writing turns invalid
 // input into a clear 400 response instead of a MySQL truncation error (500).
@@ -49,25 +61,47 @@ router.get(
   '/dashboard',
   VIEW,
   asyncHandler(async (req, res) => {
+    // Employees only ever see their own onboarding status and checklist.
+    // Company-wide metrics and recent candidate records are for HR/Admin and
+    // read-only oversight roles only.
+    const ownOnly = req.user.role === 'employee';
+    if (ownOnly && !req.user.employeeId) {
+      return res.json({
+        metrics: {
+          total: 0, pending: 0, inProgress: 0, submitted: 0, underReview: 0,
+          completed: 0, rejected: 0, totalTasks: 0, completedTasks: 0, pendingVerification: 0,
+        },
+        recent: [],
+      });
+    }
+
+    const recordWhere = ownOnly ? 'WHERE obr.employee_id = ?' : '';
+    const recordParams = ownOnly ? [req.user.employeeId] : [];
+
     const [[counts]] = await pool.query(`
       SELECT
         COUNT(*) AS total,
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending,
-        SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) AS in_progress,
-        SUM(CASE WHEN status = 'submitted' THEN 1 ELSE 0 END) AS submitted,
-        SUM(CASE WHEN status = 'under_review' THEN 1 ELSE 0 END) AS under_review,
-        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed,
-        SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) AS rejected
-      FROM onboarding_records
-    `);
+        SUM(CASE WHEN obr.status = 'pending' THEN 1 ELSE 0 END) AS pending,
+        SUM(CASE WHEN obr.status = 'in_progress' THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN obr.status = 'submitted' THEN 1 ELSE 0 END) AS submitted,
+        SUM(CASE WHEN obr.status = 'under_review' THEN 1 ELSE 0 END) AS under_review,
+        SUM(CASE WHEN obr.status = 'completed' THEN 1 ELSE 0 END) AS completed,
+        SUM(CASE WHEN obr.status = 'rejected' THEN 1 ELSE 0 END) AS rejected
+      FROM onboarding_records obr
+      ${recordWhere}
+    `, recordParams);
 
+    const taskJoin = ownOnly
+      ? `JOIN onboarding_records obr ON obr.id = t.onboarding_id WHERE obr.employee_id = ?`
+      : '';
     const [[taskCounts]] = await pool.query(`
       SELECT
         COUNT(*) AS total_tasks,
-        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_tasks,
-        SUM(CASE WHEN status IN ('submitted','under_review') THEN 1 ELSE 0 END) AS pending_verification
-      FROM onboarding_tasks
-    `);
+        SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) AS completed_tasks,
+        SUM(CASE WHEN t.status IN ('submitted','under_review') THEN 1 ELSE 0 END) AS pending_verification
+      FROM onboarding_tasks t
+      ${taskJoin}
+    `, recordParams);
 
     const [recent] = await pool.query(`
       SELECT obr.*,
@@ -78,8 +112,9 @@ router.get(
       LEFT JOIN recruitment_candidates c ON c.id = obr.candidate_id
       LEFT JOIN hrm_employees e ON e.id = obr.employee_id
       LEFT JOIN hrm_departments d ON d.id = obr.department_id
+      ${recordWhere}
       ORDER BY obr.created_at DESC LIMIT 5
-    `);
+    `, recordParams);
 
     res.json({
       metrics: {
@@ -219,6 +254,13 @@ router.get(
       record.date_of_birth = undefined;
       record.address = undefined;
       record.alternate_phone = undefined;
+    } else if (
+      !req.permissions.includes('payroll.view_all') &&
+      req.user.employeeId !== record.employee_id
+    ) {
+      // Roles without payroll visibility (e.g. Administration) should not see
+      // another person's salary through the onboarding record either.
+      record.salary = undefined;
     }
 
     res.json({
@@ -344,6 +386,7 @@ router.post(
     const id = Number(req.params.id);
     const [[record]] = await pool.query('SELECT * FROM onboarding_records WHERE id = ?', [id]);
     if (!record) throw new ApiError(404, 'Onboarding record not found.');
+    assertCanEditRecord(req, record);
 
     const {
       first_name,
@@ -517,10 +560,18 @@ router.post(
 
       const [[record]] = await pool.query('SELECT * FROM onboarding_records WHERE id = ?', [id]);
       if (!record) throw new ApiError(404, 'Onboarding record not found.');
+      assertCanEditRecord(req, record);
       if (!req.file) throw new ApiError(400, 'Please select a document file to upload.');
 
       const title = req.body?.title || req.file.originalname;
       const taskId = req.body?.task_id ? Number(req.body.task_id) : null;
+      if (taskId) {
+        const [[task]] = await pool.query(
+          'SELECT id FROM onboarding_tasks WHERE id = ? AND onboarding_id = ?',
+          [taskId, id]
+        );
+        if (!task) throw new ApiError(400, 'That checklist task does not belong to this onboarding record.');
+      }
 
       const [resDoc] = await pool.query(`
         INSERT INTO onboarding_documents
@@ -538,7 +589,7 @@ router.post(
       ]);
 
       if (taskId) {
-        await pool.query("UPDATE onboarding_tasks SET status = 'submitted' WHERE id = ?", [taskId]);
+        await pool.query("UPDATE onboarding_tasks SET status = 'submitted' WHERE id = ? AND onboarding_id = ?", [taskId, id]);
       }
 
       res.status(201).json({
@@ -660,7 +711,7 @@ router.post(
  */
 router.get(
   '/templates',
-  VIEW,
+  VIEW_ADMIN,
   asyncHandler(async (req, res) => {
     const [templates] = await pool.query(`
       SELECT ot.*, d.name AS department_name,
@@ -677,7 +728,7 @@ router.get(
 
 router.get(
   '/templates/:id',
-  VIEW,
+  VIEW_ADMIN,
   asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
     const [[template]] = await pool.query('SELECT * FROM onboarding_templates WHERE id = ?', [id]);

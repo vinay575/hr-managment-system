@@ -670,3 +670,110 @@ describe('API validation and error handling', () => {
     expect(response.body.message).toBe('Endpoint not found.');
   });
 });
+
+describe('self-service data boundaries', () => {
+  it('keeps the employee onboarding dashboard scoped to their own record', async () => {
+    const token = await tokenFor('employee');
+    poolQuery.mockClear();
+    const response = await request(app)
+      .get('/api/onboarding/dashboard')
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(200);
+
+    const recordQueries = poolQuery.mock.calls.filter(([sql]) =>
+      String(sql).includes('FROM onboarding_records obr')
+    );
+    expect(recordQueries.length).toBeGreaterThan(0);
+    expect(recordQueries.every(([, params]) => params.includes(1005))).toBe(true);
+    expect(poolQuery.mock.calls.some(([sql]) =>
+      String(sql).includes('FROM onboarding_tasks') && String(sql).includes('obr.employee_id = ?')
+    )).toBe(true);
+  });
+
+  it('prevents an employee from editing another person onboarding record', async () => {
+    const token = await tokenFor('employee');
+    const defaultQuery = poolQuery.getMockImplementation();
+    poolQuery.mockImplementation(async (sql, params) => {
+      if (String(sql).includes('FROM onboarding_records WHERE id = ?')) {
+        return [[{ id: 7, employee_id: 9999 }], []];
+      }
+      return defaultQuery(sql, params);
+    });
+
+    const response = await request(app)
+      .post('/api/onboarding/records/7/submit-info')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ first_name: 'Should', last_name: 'Fail' });
+
+    expect(response.status).toBe(403);
+    expect(response.body.message).toMatch(/own onboarding record/i);
+  });
+
+  it('prevents an employee from uploading documents to another onboarding record', async () => {
+    const token = await tokenFor('employee');
+    const defaultQuery = poolQuery.getMockImplementation();
+    poolQuery.mockImplementation(async (sql, params) => {
+      if (String(sql).includes('FROM onboarding_records WHERE id = ?')) {
+        return [[{ id: 7, employee_id: 9999 }], []];
+      }
+      return defaultQuery(sql, params);
+    });
+
+    const response = await request(app)
+      .post('/api/onboarding/records/7/documents')
+      .set('Authorization', `Bearer ${token}`)
+      .field('doc_type', 'pan_card');
+
+    expect(response.status).toBe(403);
+    expect(response.body.message).toMatch(/own onboarding record/i);
+  });
+
+  it('hides internal onboarding templates from employees', async () => {
+    const token = await tokenFor('employee');
+    const list = await request(app)
+      .get('/api/onboarding/templates')
+      .set('Authorization', `Bearer ${token}`);
+    const detail = await request(app)
+      .get('/api/onboarding/templates/1')
+      .set('Authorization', `Bearer ${token}`);
+    expect(list.status).toBe(403);
+    expect(detail.status).toBe(403);
+  });
+
+  it('forces employees to submit resignations for their own profile only', async () => {
+    const token = await tokenFor('employee');
+    poolQuery.mockClear();
+    const response = await request(app)
+      .post('/api/offboarding/resignations')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        employee_id: 9999,
+        resignation_date: '2026-01-10',
+        proposed_last_working_day: '2026-02-10',
+        reason: 'Personal reasons',
+      });
+
+    expect(response.status).toBe(201);
+    const insert = poolQuery.mock.calls.find(([sql]) =>
+      String(sql).includes('INSERT INTO employee_resignations')
+    );
+    expect(insert).toBeTruthy();
+    expect(insert[1][0]).toBe(1005);
+  });
+
+  it('prevents a read-only role from filing a resignation for someone else', async () => {
+    const token = await tokenFor('ceo');
+    const response = await request(app)
+      .post('/api/offboarding/resignations')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        employee_id: 9999,
+        resignation_date: '2026-01-10',
+        proposed_last_working_day: '2026-02-10',
+        reason: 'Personal reasons',
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toMatch(/No employee profile/i);
+  });
+});

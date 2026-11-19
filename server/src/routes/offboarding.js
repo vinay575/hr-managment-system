@@ -58,8 +58,11 @@ router.post(
   asyncHandler(async (req, res) => {
     const { employee_id, resignation_date, proposed_last_working_day, reason, comments, notice_days } = req.body;
 
-    const targetEmpId = req.user.role === 'employee' ? req.user.employeeId : (employee_id || req.user.employeeId);
-    if (!targetEmpId) throw new ApiError(400, 'Employee ID is required.');
+    const canManage = req.permissions.includes('offboarding.manage');
+    // Employees may only resign themselves. Only HR/Admin (manage) can submit
+    // a resignation on behalf of another employee; read-only roles cannot.
+    const targetEmpId = canManage ? (employee_id || req.user.employeeId) : req.user.employeeId;
+    if (!targetEmpId) throw new ApiError(400, 'No employee profile is linked to this account.');
     if (!resignation_date || !proposed_last_working_day || !reason) {
       throw new ApiError(400, 'Resignation date, proposed last day, and reason are required.');
     }
