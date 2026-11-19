@@ -16,6 +16,7 @@ import {
   documentHash,
   expiryInfo,
   getCategoryMap,
+  getCategoryDocumentCounts,
   getDocumentSettings,
   listAllDocuments,
   loadDocumentByIdentity,
@@ -497,6 +498,38 @@ router.post(
 /* ------------------------------------------------------------------ */
 /*  Reports                                                            */
 /* ------------------------------------------------------------------ */
+function groupDocumentsByEmployee(rows) {
+  const map = new Map();
+  for (const row of rows) {
+    const id = Number(row.employee_id);
+    if (!map.has(id)) {
+      map.set(id, {
+        employee_id: row.employee_id,
+        employee_name: row.employee_name,
+        employee_code: row.employee_code,
+        avatar_color: row.avatar_color,
+        department_id: row.department_id,
+        department_name: row.department_name,
+        total: 0,
+        missing: 0,
+        rejected: 0,
+        pending: 0,
+        verified: 0,
+        expiring: 0,
+        expired: 0,
+      });
+    }
+    const entry = map.get(id);
+    entry.total += 1;
+    if (row.status && Object.hasOwn(entry, row.status)) entry[row.status] += 1;
+    if (row.expiry_status === 'expiring') entry.expiring += 1;
+    if (row.expiry_status === 'expired') entry.expired += 1;
+  }
+  return [...map.values()].sort(
+    (a, b) => b.total - a.total || String(a.employee_name).localeCompare(String(b.employee_name))
+  );
+}
+
 async function buildReport(req) {
   const categories = await getCategoryMap();
   const documents = await listAllDocuments(req, req.query, { categories });
@@ -551,6 +584,9 @@ router.get(
       expired: report.expired.slice(0, 25),
       rejected: report.rejected.slice(0, 25),
       missing: report.missingRows.slice(0, 25),
+      expiryEmployees: groupDocumentsByEmployee([...report.expiring, ...report.expired]),
+      rejectedEmployees: groupDocumentsByEmployee(report.rejected),
+      missingEmployees: groupDocumentsByEmployee(report.missingRows),
     });
   })
 );
@@ -677,13 +713,12 @@ router.get(
     const canSeeAll =
       req.permissions.includes('documents.categories.manage') || req.permissions.includes('documents.manage');
     const all = String(req.query.all || '') === '1' && canSeeAll;
-    const [rows] = await pool.query(
-      `SELECT c.*, (SELECT COUNT(*) FROM employee_documents d WHERE d.category_id = c.id) AS document_count
-       FROM document_categories c
-       ${all ? '' : 'WHERE c.is_active = 1'}
-       ORDER BY c.sort_order ASC, c.name ASC`
-    );
-    res.json({ data: rows });
+    const categories = await getCategoryMap();
+    const counts = await getCategoryDocumentCounts(categories);
+    const data = categories.rows
+      .filter((row) => all || Number(row.is_active))
+      .map((row) => ({ ...row, document_count: counts.get(Number(row.id)) || 0 }));
+    res.json({ data });
   })
 );
 
@@ -762,14 +797,10 @@ router.delete(
   CATEGORIES,
   asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
-    const [[row]] = await pool.query(
-      `SELECT c.id,
-              (SELECT COUNT(*) FROM employee_documents d WHERE d.category_id = c.id) AS document_count
-       FROM document_categories c WHERE c.id = ?`,
-      [id]
-    );
+    const [[row]] = await pool.query('SELECT id FROM document_categories WHERE id = ?', [id]);
     if (!row) throw new ApiError(404, 'Document category not found.');
-    if (Number(row.document_count) > 0) {
+    const counts = await getCategoryDocumentCounts();
+    if ((counts.get(id) || 0) > 0) {
       throw new ApiError(409, 'This category is already used by employee documents. Deactivate it instead.');
     }
     await pool.query('DELETE FROM document_categories WHERE id = ?', [id]);

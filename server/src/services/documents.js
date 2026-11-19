@@ -65,6 +65,47 @@ export async function getCategoryMap() {
   return { rows, byId, bySlug };
 }
 
+/**
+ * File counts per category across the unified document history: canonical
+ * uploads, onboarding documents and generated exit documents. Onboarding and
+ * exit rows store a `doc_type`, so they are mapped to catalogue slugs the same
+ * way the document list maps them.
+ */
+export async function getCategoryDocumentCounts(categories = null) {
+  const cat = categories || (await getCategoryMap());
+  const counts = new Map();
+  const add = (slug, amount) => {
+    const category = cat.bySlug.get(slug) || cat.bySlug.get('other');
+    if (!category) return;
+    const id = Number(category.id);
+    counts.set(id, (counts.get(id) || 0) + Number(amount || 0));
+  };
+
+  const [canonical] = await pool.query(
+    'SELECT category_id, COUNT(*) AS total FROM employee_documents GROUP BY category_id'
+  );
+  for (const row of canonical) {
+    const id = Number(row.category_id);
+    counts.set(id, (counts.get(id) || 0) + Number(row.total));
+  }
+
+  const [onboarding] = await pool.query(
+    `SELECT od.doc_type, COUNT(*) AS total
+     FROM onboarding_documents od
+     JOIN onboarding_records obr ON obr.id = od.onboarding_id
+     WHERE obr.employee_id IS NOT NULL
+     GROUP BY od.doc_type`
+  );
+  for (const row of onboarding) add(ONBOARDING_CATEGORY_SLUG[row.doc_type] || 'other', row.total);
+
+  const [exit] = await pool.query(
+    'SELECT doc_type, COUNT(*) AS total FROM employee_exit_documents GROUP BY doc_type'
+  );
+  for (const row of exit) add(EXIT_CATEGORY_SLUG[row.doc_type] || 'other', row.total);
+
+  return counts;
+}
+
 export function normalizeOnboardingStatus(status) {
   if (status === 'verified') return 'verified';
   if (status === 'rejected') return 'rejected';

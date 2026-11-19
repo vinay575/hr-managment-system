@@ -51,6 +51,7 @@ export default function DocumentReports() {
   );
 
   const expiryEmployees = useMemo(() => {
+    if (Array.isArray(data?.expiryEmployees)) return data.expiryEmployees;
     const map = new Map();
     for (const doc of [...(data?.expired || []), ...(data?.expiring || [])]) {
       const id = Number(doc.employee_id);
@@ -75,6 +76,7 @@ export default function DocumentReports() {
   }, [data]);
 
   const rejectedEmployees = useMemo(() => {
+    if (Array.isArray(data?.rejectedEmployees)) return data.rejectedEmployees;
     const map = new Map();
     for (const doc of data?.rejected || []) {
       const id = Number(doc.employee_id);
@@ -94,6 +96,7 @@ export default function DocumentReports() {
   }, [data]);
 
   const missingEmployees = useMemo(() => {
+    if (Array.isArray(data?.missingEmployees)) return data.missingEmployees;
     const map = new Map();
     for (const row of data?.missing || []) {
       const id = Number(row.employee_id);
@@ -215,9 +218,9 @@ export default function DocumentReports() {
         </Card>
 
         <Card className="p-5">
-          <SectionTitle title="Expiry exposure" description="Employees with documents needing renewal" action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('expiring')}>CSV</Button>} />
-          <div className="mt-3 space-y-2">
-            {expiryEmployees.slice(0, 8).map((emp) => (
+          <SectionTitle title="Expiry exposure" description={`${expiryEmployees.length} employee${expiryEmployees.length === 1 ? '' : 's'} with documents needing renewal`} action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('expiring')}>CSV</Button>} />
+          <div className="mt-3 max-h-[320px] space-y-2 overflow-y-auto pr-1">
+            {expiryEmployees.map((emp) => (
               <ReportEmployeeRow
                 key={emp.employee_id}
                 employee={emp}
@@ -234,9 +237,9 @@ export default function DocumentReports() {
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <Card className="p-5">
-          <SectionTitle title="Rejected documents" description="Employees awaiting replacement or correction" action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('documents')}>CSV</Button>} />
-          <div className="mt-3 space-y-2">
-            {rejectedEmployees.slice(0, 8).map((emp) => (
+          <SectionTitle title="Rejected documents" description={`${rejectedEmployees.length} employee${rejectedEmployees.length === 1 ? '' : 's'} awaiting replacement or correction`} action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('documents')}>CSV</Button>} />
+          <div className="mt-3 max-h-[320px] space-y-2 overflow-y-auto pr-1">
+            {rejectedEmployees.map((emp) => (
               <ReportEmployeeRow
                 key={emp.employee_id}
                 employee={emp}
@@ -251,9 +254,9 @@ export default function DocumentReports() {
         </Card>
 
         <Card className="p-5">
-          <SectionTitle title="Missing required documents" description="Employees with outstanding requirements" action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('missing')}>CSV</Button>} />
-          <div className="mt-3 space-y-2">
-            {missingEmployees.slice(0, 8).map((emp) => (
+          <SectionTitle title="Missing required documents" description={`${missingEmployees.length} employee${missingEmployees.length === 1 ? '' : 's'} with outstanding requirements`} action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('missing')}>CSV</Button>} />
+          <div className="mt-3 max-h-[320px] space-y-2 overflow-y-auto pr-1">
+            {missingEmployees.map((emp) => (
               <ReportEmployeeRow
                 key={emp.employee_id}
                 employee={emp}

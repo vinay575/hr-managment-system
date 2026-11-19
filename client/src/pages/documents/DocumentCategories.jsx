@@ -189,7 +189,9 @@ export default function DocumentCategories() {
                         <p className="mt-0.5 text-[10.5px] text-slate-400">
                           {Number(row.employee_uploads) ? 'Employee upload allowed' : 'HR upload only'}
                           {' · '}{Number(row.requires_verification) ? 'Verification required' : 'No verification'}
-                          {' · '}{Number(row.document_count) || 0} file{(Number(row.document_count) || 0) === 1 ? '' : 's'}
+                          {' · '}{Number(row.document_count) > 0
+                            ? `${Number(row.document_count)} file${Number(row.document_count) === 1 ? '' : 's'}`
+                            : 'No files yet'}
                         </p>
                       </div>
                       <div className="flex shrink-0 gap-1">
