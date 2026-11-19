@@ -182,8 +182,8 @@ export default function DocumentCategories() {
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-1.5">
                           <p className="text-[12.5px] font-semibold text-ink-900">{row.name}</p>
-                          {Number(row.is_required) && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-brand-700">Required</span>}
-                          {Number(row.requires_expiry) && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-amber-700">Expiry</span>}
+                          {Number(row.is_required) > 0 && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-brand-700">Required</span>}
+                          {Number(row.requires_expiry) > 0 && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-amber-700">Expiry</span>}
                           {!Number(row.is_active) && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9.5px] font-semibold text-slate-500">Inactive</span>}
                         </div>
                         <p className="mt-0.5 text-[10.5px] text-slate-400">

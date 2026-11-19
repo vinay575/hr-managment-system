@@ -14,9 +14,14 @@ export default function DocumentReports() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState('');
+  const [expanded, setExpanded] = useState({});
   const [employeeFile, setEmployeeFile] = useState(null);
   const [selected, setSelected] = useState(null);
   const [docRefresh, setDocRefresh] = useState(0);
+
+  const toggleExpanded = (key) => setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+  const listClass = (key) =>
+    clsx('mt-3 space-y-2 pr-1', expanded[key] ? 'doc-list-expanded' : 'doc-list-scroll');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -218,8 +223,17 @@ export default function DocumentReports() {
         </Card>
 
         <Card className="p-5">
-          <SectionTitle title="Expiry exposure" description={`${expiryEmployees.length} employee${expiryEmployees.length === 1 ? '' : 's'} with documents needing renewal`} action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('expiring')}>CSV</Button>} />
-          <div className="mt-3 max-h-[320px] space-y-2 overflow-y-auto pr-1">
+          <SectionTitle
+            title="Expiry exposure"
+            description={`${expiryEmployees.length} employee${expiryEmployees.length === 1 ? '' : 's'} with documents needing renewal`}
+            action={
+              <div className="flex items-center gap-1">
+                <Button size="sm" variant="ghost" onClick={() => toggleExpanded('expiry')}>{expanded.expiry ? 'Collapse' : 'Expand'}</Button>
+                <Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('expiring')}>CSV</Button>
+              </div>
+            }
+          />
+          <div className={listClass('expiry')}>
             {expiryEmployees.map((emp) => (
               <ReportEmployeeRow
                 key={emp.employee_id}
@@ -237,8 +251,17 @@ export default function DocumentReports() {
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <Card className="p-5">
-          <SectionTitle title="Rejected documents" description={`${rejectedEmployees.length} employee${rejectedEmployees.length === 1 ? '' : 's'} awaiting replacement or correction`} action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('documents')}>CSV</Button>} />
-          <div className="mt-3 max-h-[320px] space-y-2 overflow-y-auto pr-1">
+          <SectionTitle
+            title="Rejected documents"
+            description={`${rejectedEmployees.length} employee${rejectedEmployees.length === 1 ? '' : 's'} awaiting replacement or correction`}
+            action={
+              <div className="flex items-center gap-1">
+                <Button size="sm" variant="ghost" onClick={() => toggleExpanded('rejected')}>{expanded.rejected ? 'Collapse' : 'Expand'}</Button>
+                <Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('documents')}>CSV</Button>
+              </div>
+            }
+          />
+          <div className={listClass('rejected')}>
             {rejectedEmployees.map((emp) => (
               <ReportEmployeeRow
                 key={emp.employee_id}
@@ -254,8 +277,17 @@ export default function DocumentReports() {
         </Card>
 
         <Card className="p-5">
-          <SectionTitle title="Missing required documents" description={`${missingEmployees.length} employee${missingEmployees.length === 1 ? '' : 's'} with outstanding requirements`} action={<Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('missing')}>CSV</Button>} />
-          <div className="mt-3 max-h-[320px] space-y-2 overflow-y-auto pr-1">
+          <SectionTitle
+            title="Missing required documents"
+            description={`${missingEmployees.length} employee${missingEmployees.length === 1 ? '' : 's'} with outstanding requirements`}
+            action={
+              <div className="flex items-center gap-1">
+                <Button size="sm" variant="ghost" onClick={() => toggleExpanded('missing')}>{expanded.missing ? 'Collapse' : 'Expand'}</Button>
+                <Button size="sm" variant="ghost" icon={Download} onClick={() => exportCsv('missing')}>CSV</Button>
+              </div>
+            }
+          />
+          <div className={listClass('missing')}>
             {missingEmployees.map((emp) => (
               <ReportEmployeeRow
                 key={emp.employee_id}
