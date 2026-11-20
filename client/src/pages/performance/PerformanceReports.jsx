@@ -13,6 +13,7 @@ import {
   SearchInput,
   Select,
   Tabs,
+  EmployeePicker,
 } from '../../components/ui';
 import {
   CYCLE_STATUS,
@@ -150,10 +151,13 @@ export default function PerformanceReports() {
             {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
           </Select>
           {tab !== 'departments' && (
-            <Select value={filters.employeeId} onChange={(e) => setFilter('employeeId', e.target.value)} className="w-auto min-w-[150px] py-2 text-[12.5px]">
-              <option value="">All employees</option>
-              {employees.map((e) => <option key={e.id} value={e.id}>{e.first_name} {e.last_name}</option>)}
-            </Select>
+            <EmployeePicker
+              label="Employee"
+              value={filters.employeeId}
+              onChange={(value) => setFilter('employeeId', value)}
+              employees={employees}
+              hint="Search by name, employee ID, designation or department."
+            />
           )}
           {(tab === 'goals' || tab === 'review-cycles') && (
             <Select value={filters.status} onChange={(e) => setFilter('status', e.target.value)} className="w-auto min-w-[128px] py-2 text-[12.5px]">

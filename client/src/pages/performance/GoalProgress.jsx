@@ -13,6 +13,7 @@ import {
   Progress,
   SearchInput,
   Select,
+  EmployeePicker,
 } from '../../components/ui';
 import {
   EmptyGoals,
@@ -133,10 +134,13 @@ export default function GoalProgress() {
             </Select>
           )}
           {canAll && (
-            <Select value={filters.employeeId} onChange={(e) => setFilter('employeeId', e.target.value)} className="w-auto min-w-[150px] py-2 text-[12.5px]">
-              <option value="">All employees</option>
-              {employees.map((e) => <option key={e.id} value={e.id}>{e.first_name} {e.last_name}</option>)}
-            </Select>
+            <EmployeePicker
+              label="Employee"
+              value={filters.employeeId}
+              onChange={(value) => setFilter('employeeId', value)}
+              employees={employees}
+              hint="Search by name, employee ID, designation or department."
+            />
           )}
           <button onClick={() => { setFilters(EMPTY); setPage(1); }} className="ml-auto flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11.5px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-ink-800">
             <RefreshCw size={13} /> Reset
