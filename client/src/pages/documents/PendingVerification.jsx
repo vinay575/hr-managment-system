@@ -49,7 +49,7 @@ export default function PendingVerification() {
 
       <Card className="p-4">
         <div className="flex flex-wrap items-center gap-2.5">
-          <SearchInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search employee, department or document…" className="min-w-[220px] flex-1" />
+          <SearchInput value={search} onChange={setSearch} placeholder="Search employee, department or document…" className="min-w-[220px] flex-1" />
           <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} wrapperClass="w-auto min-w-[180px]">
             <option value="">All categories</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}

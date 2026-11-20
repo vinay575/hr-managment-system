@@ -63,7 +63,7 @@ export default function PerformanceReports() {
   }, [filters.search]);
 
   useEffect(() => {
-    if (can('employees.view')) api.get('/employees/options').then((r) => setEmployees(r.data || [])).catch(() => {});
+    if (can('employees.view')) api.get('/employees/options?includeInactive=1').then((r) => setEmployees(r.data || [])).catch(() => {});
     if (can('departments.view')) api.get('/departments').then((r) => setDepartments(r.data || [])).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -152,11 +152,12 @@ export default function PerformanceReports() {
           </Select>
           {tab !== 'departments' && (
             <EmployeePicker
-              label="Employee"
+              label=""
               value={filters.employeeId}
               onChange={(value) => setFilter('employeeId', value)}
               employees={employees}
-              hint="Search by name, employee ID, designation or department."
+              clearable
+              placeholder="All employees"
             />
           )}
           {(tab === 'goals' || tab === 'review-cycles') && (

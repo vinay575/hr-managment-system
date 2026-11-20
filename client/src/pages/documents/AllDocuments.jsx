@@ -78,7 +78,7 @@ export default function AllDocuments() {
 
       <Card className="p-4">
         <div className="flex flex-wrap items-center gap-2.5">
-          <SearchInput value={filters.search} onChange={(e) => update('search', e.target.value)} placeholder="Search employee, department or document…" className="min-w-[240px] flex-1" />
+          <SearchInput value={filters.search} onChange={(v) => update('search', v)} placeholder="Search employee, department or document…" className="min-w-[240px] flex-1" />
           <Button
             variant={showFilters || activeFilterCount ? 'soft' : 'secondary'}
             icon={Filter}
@@ -116,7 +116,8 @@ export default function AllDocuments() {
                 value={filters.employeeId}
                 onChange={(value) => update('employeeId', value)}
                 employees={employees}
-                hint="Search by name, employee ID, designation or department."
+                clearable
+                placeholder="All employees"
               />
             ) : (
               <Select label="Source" value={filters.source} onChange={(e) => update('source', e.target.value)}>

@@ -60,6 +60,7 @@ export default function Goals() {
   const [loading, setLoading] = useState(true);
 
   const [employees, setEmployees] = useState([]);
+  const [filterEmployees, setFilterEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
 
   const [formOpen, setFormOpen] = useState(false);
@@ -75,6 +76,7 @@ export default function Goals() {
   useEffect(() => {
     if (can('employees.view')) {
       api.get('/employees/options').then((res) => setEmployees(res.data || [])).catch(() => {});
+      api.get('/employees/options?includeInactive=1').then((res) => setFilterEmployees(res.data || [])).catch(() => {});
     }
     if (can('departments.view')) {
       api.get('/departments').then((res) => setDepartments(res.data || [])).catch(() => {});
@@ -175,11 +177,12 @@ export default function Goals() {
             )}
             {canAll && (
               <EmployeePicker
-                label="Employee"
+                label=""
                 value={filters.employeeId}
                 onChange={(value) => setFilter('employeeId', value)}
-                employees={employees}
-                hint="Search by name, employee ID, designation or department."
+                employees={filterEmployees}
+                clearable
+                placeholder="All employees"
               />
             )}
             <Select value={filters.sort} onChange={(e) => setFilter('sort', e.target.value)} className="w-auto min-w-[130px] py-2 text-[12.5px]">

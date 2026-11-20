@@ -134,7 +134,7 @@ export default function AllAnnouncements() {
         <div className="flex flex-wrap items-center gap-2">
           <SearchInput
             value={filters.search}
-            onChange={(e) => update('search', e.target.value)}
+            onChange={(v) => update('search', v)}
             placeholder="Search announcements."
             className="min-w-[220px] flex-1"
           />

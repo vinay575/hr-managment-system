@@ -271,7 +271,7 @@ export default function DocumentsDashboard() {
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
               <SearchInput
                 value={employeeSearch}
-                onChange={(e) => setEmployeeSearch(e.target.value)}
+                onChange={setEmployeeSearch}
                 placeholder="Search employees…"
                 className="w-full sm:w-[240px]"
               />

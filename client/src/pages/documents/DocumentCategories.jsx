@@ -161,7 +161,7 @@ export default function DocumentCategories() {
 
       <Card className="p-4">
         <div className="flex flex-wrap items-center gap-2.5">
-          <SearchInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search categories…" className="min-w-[220px] flex-1" />
+          <SearchInput value={search} onChange={setSearch} placeholder="Search categories…" className="min-w-[220px] flex-1" />
           <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-600">{rows.length} categories</span>
           <span className="rounded-full bg-brand-50 px-3 py-1.5 text-[11px] font-semibold text-brand-700">{rows.filter((r) => Number(r.is_required)).length} required</span>
         </div>

@@ -204,6 +204,7 @@ export function EmployeePicker({
   required,
   hint,
   placeholder = 'Select an employee…',
+  clearable = false,
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -237,7 +238,31 @@ export function EmployeePicker({
         <span className={clsx('min-w-0 flex-1 truncate', selected ? 'text-ink-800' : 'text-slate-400')}>
           {selected ? `${nameOf(selected)}${selected.employee_code ? ` · ${selected.employee_code}` : ''}` : placeholder}
         </span>
-        <ChevronDown size={16} className={clsx('shrink-0 text-slate-400 transition-transform', open && 'rotate-180')} />
+        {clearable && selected ? (
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label="Clear selection"
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange?.('');
+              close();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                onChange?.('');
+                close();
+              }
+            }}
+            className="shrink-0 rounded-md p-0.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+          >
+            <X size={15} />
+          </span>
+        ) : (
+          <ChevronDown size={16} className={clsx('shrink-0 text-slate-400 transition-transform', open && 'rotate-180')} />
+        )}
       </button>
 
       {open && (
@@ -278,6 +303,11 @@ export function EmployeePicker({
                         {[emp.employee_code, emp.designation, emp.department_name].filter(Boolean).join(' · ') || 'No details'}
                       </span>
                     </span>
+                    {emp.status && emp.status !== 'active' && (
+                      <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-wide text-slate-500">
+                        {emp.status === 'inactive' ? 'Inactive' : emp.status}
+                      </span>
+                    )}
                     {active && <CheckCircle2 size={15} className="shrink-0 text-brand-600" />}
                   </button>
                 );

@@ -56,7 +56,7 @@ export default function GoalProgress() {
   }, [filters.search]);
 
   useEffect(() => {
-    if (can('employees.view')) api.get('/employees/options').then((r) => setEmployees(r.data || [])).catch(() => {});
+    if (can('employees.view')) api.get('/employees/options?includeInactive=1').then((r) => setEmployees(r.data || [])).catch(() => {});
     if (can('departments.view')) api.get('/departments').then((r) => setDepartments(r.data || [])).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -135,11 +135,12 @@ export default function GoalProgress() {
           )}
           {canAll && (
             <EmployeePicker
-              label="Employee"
+              label=""
               value={filters.employeeId}
               onChange={(value) => setFilter('employeeId', value)}
               employees={employees}
-              hint="Search by name, employee ID, designation or department."
+              clearable
+              placeholder="All employees"
             />
           )}
           <button onClick={() => { setFilters(EMPTY); setPage(1); }} className="ml-auto flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11.5px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-ink-800">

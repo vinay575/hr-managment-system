@@ -86,7 +86,7 @@ export default function ExpiringDocuments() {
           </button>
         ))}
         <div className="ml-auto w-full sm:w-64">
-          <SearchInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search employee, department or document…" />
+          <SearchInput value={search} onChange={setSearch} placeholder="Search employee, department or document…" />
         </div>
       </div>
 

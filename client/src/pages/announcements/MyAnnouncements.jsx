@@ -132,7 +132,7 @@ export default function MyAnnouncements() {
             onChange={setTab}
           />
           <div className="ml-auto w-full min-w-[200px] sm:w-auto">
-            <SearchInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search my announcements." />
+            <SearchInput value={search} onChange={setSearch} placeholder="Search my announcements." />
           </div>
         </div>
       </Card>

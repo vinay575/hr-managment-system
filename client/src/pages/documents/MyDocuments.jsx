@@ -84,7 +84,7 @@ export default function MyDocuments() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <SectionTitle title="My files" description="Onboarding, employment and exit documents in one place" />
               <div className="flex items-center gap-2">
-                <SearchInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="w-40" />
+                <SearchInput value={search} onChange={setSearch} placeholder="Search…" className="w-40" />
                 <select value={status} onChange={(e) => setStatus(e.target.value)} className="input h-9 w-auto py-1.5 text-[12px]">
                   <option value="">All statuses</option>
                   <option value="verified">Verified</option>

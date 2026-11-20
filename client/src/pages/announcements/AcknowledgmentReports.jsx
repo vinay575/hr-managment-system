@@ -152,7 +152,7 @@ export default function AcknowledgmentReports() {
 
       <Card className="overflow-hidden">
         <div className="grid grid-cols-1 gap-3 border-b border-slate-100 p-4 sm:grid-cols-3">
-          <SearchInput value={filters.search} onChange={(e) => update('search', e.target.value)} placeholder="Search employee or code." />
+          <SearchInput value={filters.search} onChange={(v) => update('search', v)} placeholder="Search employee or code." />
           <Select value={filters.status} onChange={(e) => update('status', e.target.value)}>
             <option value="">All statuses</option>
             <option value="acknowledged">Acknowledged</option>

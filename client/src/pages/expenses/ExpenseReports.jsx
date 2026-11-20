@@ -84,7 +84,7 @@ export default function ExpenseReports() {
   useEffect(() => {
     api.get('/expenses/categories').then((res) => setCategories(res.data || [])).catch(() => {});
     if (can('departments.view')) api.get('/departments').then((res) => setDepartments(res.data || [])).catch(() => {});
-    if (can('employees.view')) api.get('/employees/options').then((res) => setEmployees(res.data || [])).catch(() => {});
+    if (can('employees.view')) api.get('/employees/options?includeInactive=1').then((res) => setEmployees(res.data || [])).catch(() => {});
   }, [can]);
 
   const update = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
@@ -162,11 +162,12 @@ export default function ExpenseReports() {
           )}
           {employees.length > 0 && (
             <EmployeePicker
-              label="Employee"
+              label=""
               value={filters.employeeId}
               onChange={(value) => update('employeeId', value)}
               employees={employees}
-              hint="Search by name, employee ID, designation or department."
+              clearable
+              placeholder="All employees"
             />
           )}
           {departments.length > 0 && (
