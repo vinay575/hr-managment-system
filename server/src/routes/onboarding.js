@@ -68,7 +68,7 @@ router.get(
     if (ownOnly && !req.user.employeeId) {
       return res.json({
         metrics: {
-          total: 0, pending: 0, inProgress: 0, submitted: 0, underReview: 0,
+          total: 0, open: 0, pending: 0, inProgress: 0, submitted: 0, underReview: 0,
           completed: 0, rejected: 0, totalTasks: 0, completedTasks: 0, pendingVerification: 0,
         },
         recent: [],
@@ -81,6 +81,7 @@ router.get(
     const [[counts]] = await pool.query(`
       SELECT
         COUNT(*) AS total,
+        SUM(CASE WHEN obr.status IN ('pending','in_progress','submitted','under_review') THEN 1 ELSE 0 END) AS open,
         SUM(CASE WHEN obr.status = 'pending' THEN 1 ELSE 0 END) AS pending,
         SUM(CASE WHEN obr.status = 'in_progress' THEN 1 ELSE 0 END) AS in_progress,
         SUM(CASE WHEN obr.status = 'submitted' THEN 1 ELSE 0 END) AS submitted,
@@ -119,6 +120,7 @@ router.get(
     res.json({
       metrics: {
         total: Number(counts.total) || 0,
+        open: Number(counts.open) || 0,
         pending: Number(counts.pending) || 0,
         inProgress: Number(counts.in_progress) || 0,
         submitted: Number(counts.submitted) || 0,

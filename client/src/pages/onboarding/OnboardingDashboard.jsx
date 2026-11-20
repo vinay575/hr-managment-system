@@ -110,8 +110,9 @@ export default function OnboardingDashboard() {
               <Users size={22} />
             </div>
             <div>
-              <p className="text-[12px] font-medium text-slate-500">Total In Onboarding</p>
-              <p className="font-display text-2xl font-bold text-ink-900">{data.metrics?.total || 0}</p>
+              <p className="text-[12px] font-medium text-slate-500">Onboarding records</p>
+              <p className="font-display text-2xl font-bold text-ink-900">{data.metrics?.open ?? data.metrics?.total ?? 0}</p>
+              <p className="text-[10.5px] text-slate-400">open workflows</p>
             </div>
           </Card>
           <Card className="p-4 flex items-center gap-4">
