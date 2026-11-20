@@ -186,17 +186,17 @@ export default function RecruitmentPipeline() {
                               <History size={12} /> Details
                             </Button>
                             {manage && transitions.length > 0 && app.stage !== 'hired' && (
-                              <select
+                              <Select
                                 id={`move-stage-${app.id}`}
                                 name={`move_stage_${app.id}`}
                                 aria-label={`Move ${app.candidate_name || 'candidate'} to another stage`}
-                                className="ml-auto rounded-md border border-slate-200 bg-white px-1.5 py-1 text-[10.5px] font-semibold text-slate-600 outline-none transition hover:border-brand-300"
+                                className="ml-auto w-auto rounded-md px-1.5 py-1 text-[10.5px] font-semibold text-slate-600 hover:border-brand-300"
                                 value=""
                                 onChange={(e) => e.target.value && move(app, e.target.value)}
                               >
                                 <option value="">Move to…</option>
                                 {transitions.map((t) => <option key={t} value={t}>{STAGE_META[t]?.label || pretty(t)}</option>)}
-                              </select>
+                              </Select>
                             )}
                           </div>
                         </div>

@@ -176,19 +176,19 @@ export default function Employees() {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search name, role, email or ID…" className="flex-1" />
           <div className="flex flex-wrap items-center gap-2.5">
-            <select id="employees-department" name="department" aria-label="Filter by department" value={department} onChange={(e) => { setDepartment(e.target.value); setPage(1); }} className="input w-auto min-w-[150px] py-2.5 text-[13px]">
+            <Select id="employees-department" name="department" aria-label="Filter by department" value={department} onChange={(e) => { setDepartment(e.target.value); setPage(1); }} className="w-auto min-w-[150px] py-2.5 text-[13px]">
               <option value="">All departments</option>
               {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </select>
-            <select id="employees-status" name="status" aria-label="Filter by status" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} className="input w-auto min-w-[120px] py-2.5 text-[13px]">
+            </Select>
+            <Select id="employees-status" name="status" aria-label="Filter by status" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} className="w-auto min-w-[120px] py-2.5 text-[13px]">
               <option value="">Any status</option>
               {STATUSES.map((s) => <option key={s} value={s}>{capitalize(s)}</option>)}
-            </select>
-            <select id="employees-sort" name="sort" aria-label="Sort employees" value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); }} className="input w-auto min-w-[130px] py-2.5 text-[13px]">
+            </Select>
+            <Select id="employees-sort" name="sort" aria-label="Sort employees" value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); }} className="w-auto min-w-[130px] py-2.5 text-[13px]">
               <option value="newest">Newest first</option>
               <option value="oldest">Oldest first</option>
               <option value="name">Name A–Z</option>
-            </select>
+            </Select>
             <div className="ml-auto flex rounded-xl border border-slate-200 bg-slate-50 p-1">
               <button onClick={() => setView('grid')} className={clsx('grid h-8 w-8 place-items-center rounded-lg transition', view === 'grid' ? 'bg-white text-ink-900 shadow-sm' : 'text-slate-400 hover:text-ink-700')} title="Grid view">
                 <LayoutGrid size={15} />

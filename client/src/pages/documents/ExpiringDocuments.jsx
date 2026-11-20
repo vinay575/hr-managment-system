@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../lib/api';
 import { Button, Card, LoadingBlock, SearchInput } from '../../components/ui';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { DocumentDetailModal, EmployeeDocumentsModal, EmployeeFileGrid } from './document-ui';
 
 const TABS = [
@@ -19,6 +20,7 @@ export default function ExpiringDocuments() {
   const [directory, setDirectory] = useState({ data: [], totalEmployees: 0, totalDocuments: 0 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search);
   const [employeeFile, setEmployeeFile] = useState(null);
   const [selected, setSelected] = useState(null);
   const [docRefresh, setDocRefresh] = useState(0);
@@ -28,7 +30,7 @@ export default function ExpiringDocuments() {
     setLoading(true);
     try {
       const params = new URLSearchParams({ expiryStatus: tab === 'expiring' ? 'expiring_soon' : 'expired' });
-      if (search) params.set('search', search);
+      if (debouncedSearch) params.set('search', debouncedSearch);
       const res = await api.get(`/documents/directory?${params.toString()}`);
       setDirectory(res || { data: [], totalEmployees: 0, totalDocuments: 0 });
     } catch (err) {
@@ -36,7 +38,7 @@ export default function ExpiringDocuments() {
     } finally {
       setLoading(false);
     }
-  }, [tab, search, toast]);
+  }, [tab, debouncedSearch, toast]);
 
   useEffect(() => {
     load();

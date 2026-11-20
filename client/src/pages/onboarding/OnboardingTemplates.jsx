@@ -171,18 +171,19 @@ export default function OnboardingTemplates() {
                     onChange={(e) => updateTask(idx, 'title', e.target.value)}
                     className="flex-1"
                   />
-                  <select
+                  <Select
                     id={`template-task-category-${idx}`}
                     name={`task_category_${idx}`}
                     aria-label={`Category for task ${idx + 1}`}
-                    className="text-[12px] rounded-lg border border-slate-200 bg-white px-2 py-1.5"
+                    className="text-[12px] rounded-lg px-2 py-1.5"
                     value={task.category}
                     onChange={(e) => updateTask(idx, 'category', e.target.value)}
+                    wrapperClass="shrink-0"
                   >
                     <option value="PERSONAL INFORMATION">Personal Info</option>
                     <option value="DOCUMENT VERIFICATION">Document</option>
                     <option value="EMPLOYMENT FORMALITIES">Formalities</option>
-                  </select>
+                  </Select>
                   <button
                     type="button"
                     onClick={() => removeTask(idx)}

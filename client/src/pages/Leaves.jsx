@@ -29,6 +29,7 @@ import {
   Modal,
   Progress,
   SectionTitle,
+  Select,
   StatCard,
   Tabs,
   capitalize,
@@ -139,10 +140,10 @@ function ManagerLeaves({ user }) {
       <Card className="p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <StatusTabs value={status} onChange={setStatus} manager stats={stats} />
-          <select id="leaves-type" name="type" aria-label="Filter by leave type" value={type} onChange={(e) => setType(e.target.value)} className="input w-auto min-w-[160px] py-2 text-[12.5px]">
+          <Select id="leaves-type" name="type" aria-label="Filter by leave type" value={type} onChange={(e) => setType(e.target.value)} className="w-auto min-w-[160px] py-2 text-[12.5px]">
             <option value="">All leave types</option>
             {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-          </select>
+          </Select>
         </div>
       </Card>
 

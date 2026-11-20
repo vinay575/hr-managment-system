@@ -3,6 +3,7 @@ import { Clock3, ShieldCheck } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../lib/api';
 import { Card, LoadingBlock, SearchInput, Select } from '../../components/ui';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { DocumentDetailModal, EmployeeDocumentsModal, EmployeeFileGrid } from './document-ui';
 
 export default function PendingVerification() {
@@ -10,6 +11,7 @@ export default function PendingVerification() {
   const [directory, setDirectory] = useState({ data: [], totalEmployees: 0, totalDocuments: 0 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search);
   const [categoryId, setCategoryId] = useState('');
   const [categories, setCategories] = useState([]);
   const [employeeFile, setEmployeeFile] = useState(null);
@@ -20,7 +22,7 @@ export default function PendingVerification() {
     setLoading(true);
     try {
       const params = new URLSearchParams({ status: 'pending' });
-      if (search) params.set('search', search);
+      if (debouncedSearch) params.set('search', debouncedSearch);
       if (categoryId) params.set('categoryId', categoryId);
       const res = await api.get(`/documents/directory?${params.toString()}`);
       setDirectory(res || { data: [], totalEmployees: 0, totalDocuments: 0 });
@@ -29,7 +31,7 @@ export default function PendingVerification() {
     } finally {
       setLoading(false);
     }
-  }, [search, categoryId, toast]);
+  }, [debouncedSearch, categoryId, toast]);
 
   useEffect(() => {
     load();

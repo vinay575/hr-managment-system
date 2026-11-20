@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../lib/api';
 import { Card, LoadingBlock, SearchInput, Select } from '../../components/ui';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { DocumentDetailModal, EmployeeDocumentsModal, EmployeeFileGrid } from './document-ui';
 
 export default function MissingDocuments() {
@@ -14,6 +15,7 @@ export default function MissingDocuments() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search);
   const [status, setStatus] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [onlyMissing, setOnlyMissing] = useState(true);
@@ -26,7 +28,7 @@ export default function MissingDocuments() {
     setLoading(true);
     try {
       const params = new URLSearchParams({ scope: 'missing' });
-      if (search) params.set('search', search);
+      if (debouncedSearch) params.set('search', debouncedSearch);
       if (status) params.set('status', status);
       if (categoryId) params.set('categoryId', categoryId);
       if (onlyMissing) params.set('onlyMissing', '1');
@@ -37,7 +39,7 @@ export default function MissingDocuments() {
     } finally {
       setLoading(false);
     }
-  }, [search, status, categoryId, onlyMissing, toast]);
+  }, [debouncedSearch, status, categoryId, onlyMissing, toast]);
 
   useEffect(() => {
     load();

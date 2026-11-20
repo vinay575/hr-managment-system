@@ -15,6 +15,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../lib/api';
 import { Button, Card, EmptyState, LoadingBlock, Pagination, SearchInput, Select } from '../../components/ui';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import {
   AnnouncementDetailModal,
   AnnouncementFormModal,
@@ -45,12 +46,13 @@ export default function AllAnnouncements() {
 
   const canManage = can('announcements.manage');
   const canDelete = user?.role === 'super_admin';
+  const debouncedSearch = useDebouncedValue(filters.search);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
-      if (filters.search.trim()) params.set('search', filters.search.trim());
+      if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim());
       if (filters.status) params.set('status', filters.status);
       if (filters.category) params.set('category', filters.category);
       const res = await api.get(`/announcements?${params.toString()}`);
@@ -61,7 +63,7 @@ export default function AllAnnouncements() {
     } finally {
       setLoading(false);
     }
-  }, [page, filters, toast]);
+  }, [page, filters, debouncedSearch, toast]);
 
   useEffect(() => { load(); }, [load]);
 

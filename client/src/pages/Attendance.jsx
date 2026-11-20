@@ -26,6 +26,7 @@ import {
   Pagination,
   SectionTitle,
   Segmented,
+  Select,
   StatCard,
   capitalize,
 } from '../components/ui';
@@ -128,10 +129,10 @@ function ManagerAttendance() {
           ) : (
             <input id="attendance-month" name="month" aria-label="Attendance month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="input w-auto py-2.5 text-[13px]" />
           )}
-          <select id="attendance-department" name="department" aria-label="Department" value={department} onChange={(e) => setDepartment(e.target.value)} className="input w-auto min-w-[155px] py-2.5 text-[13px]">
+          <Select id="attendance-department" name="department" aria-label="Department" value={department} onChange={(e) => setDepartment(e.target.value)} className="w-auto min-w-[155px] py-2.5 text-[13px]">
             <option value="">All departments</option>
             {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
+          </Select>
           <div className="flex flex-wrap gap-1.5 lg:ml-auto">
             {STATUS_FILTERS.map((f) => (
               <button

@@ -20,6 +20,7 @@ import {
   Button,
   Card,
   EmptyState,
+  EmployeePicker,
   Field,
   Input,
   LoadingBlock,
@@ -281,17 +282,17 @@ export default function AccessControl() {
                         )}
                       </td>
                       <td className="table-cell">
-                        <select
+                        <Select
                           id={`user-role-${u.id}`}
                           name={`user-role-${u.id}`}
                           aria-label={`Role for ${u.name}`}
                           value={u.role}
                           onChange={(e) => patchUser(u, { role: e.target.value })}
                           disabled={u.id === me?.id}
-                          className="input w-auto min-w-[140px] py-1.5 text-[12px]"
+                          className="w-auto min-w-[140px] py-1.5 text-[12px]"
                         >
                           {roles.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
-                        </select>
+                        </Select>
                       </td>
                       <td className="table-cell">
                         <Badge status={u.is_active ? 'active' : 'inactive'} dot>{u.is_active ? 'Active' : 'Inactive'}</Badge>
@@ -431,14 +432,17 @@ export default function AccessControl() {
               </div>
             </div>
           )}
-          <Field label="Linked employee" hint="Optional — links this account to an employee record." className="sm:col-span-2" htmlFor="access-linked-employee">
-            <select id="access-linked-employee" name="employee_id" value={form.employee_id} onChange={(e) => setForm((f) => ({ ...f, employee_id: e.target.value }))} className="input">
-              <option value="">No linked employee</option>
-              {options.map((o) => (
-                <option key={o.id} value={o.id}>{o.first_name} {o.last_name} · {o.designation}</option>
-              ))}
-            </select>
-          </Field>
+          <div className="sm:col-span-2">
+            <EmployeePicker
+              label="Linked employee"
+              hint="Optional — links this account to an employee record."
+              value={form.employee_id}
+              onChange={(value) => setForm((f) => ({ ...f, employee_id: value }))}
+              employees={options}
+              placeholder="No linked employee"
+              clearable
+            />
+          </div>
         </form>
       </Modal>
 

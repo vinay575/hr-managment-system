@@ -3,7 +3,7 @@ import { CheckCircle2, FileText, ShieldAlert, UploadCloud } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api, fmtDate } from '../../lib/api';
-import { Button, Card, EmptyState, LoadingBlock, SearchInput, SectionTitle, Progress, StatCard } from '../../components/ui';
+import { Button, Card, EmptyState, LoadingBlock, SearchInput, SectionTitle, Select, Progress, StatCard } from '../../components/ui';
 import { DocumentDetailModal, DocumentRow, StatusPill, UploadDocumentModal } from './document-ui';
 
 export default function MyDocuments() {
@@ -85,12 +85,12 @@ export default function MyDocuments() {
               <SectionTitle title="My files" description="Onboarding, employment and exit documents in one place" />
               <div className="flex items-center gap-2">
                 <SearchInput value={search} onChange={setSearch} placeholder="Search…" className="w-40" />
-                <select value={status} onChange={(e) => setStatus(e.target.value)} className="input h-9 w-auto py-1.5 text-[12px]">
+                <Select value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 w-auto py-1.5 text-[12px]" aria-label="Filter by status">
                   <option value="">All statuses</option>
                   <option value="verified">Verified</option>
                   <option value="pending">Pending</option>
                   <option value="rejected">Rejected</option>
-                </select>
+                </Select>
               </div>
             </div>
             <div className="mt-4 space-y-2">

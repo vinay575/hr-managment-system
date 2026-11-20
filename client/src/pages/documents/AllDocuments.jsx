@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../lib/api';
 import { Button, Card, SearchInput, Select, EmployeePicker } from '../../components/ui';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { DocumentDetailModal, EmployeeDocumentsModal, EmployeeFileGrid, UploadDocumentModal } from './document-ui';
 
 export default function AllDocuments() {
@@ -22,13 +23,15 @@ export default function AllDocuments() {
   const [docRefresh, setDocRefresh] = useState(0);
 
   const canManage = can('documents.manage');
+  const debouncedSearch = useDebouncedValue(filters.search);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ scope: 'all' });
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.set(key, value);
+        const resolved = key === 'search' ? debouncedSearch : value;
+        if (resolved) params.set(key, resolved);
       });
       const res = await api.get(`/documents/directory?${params.toString()}`);
       setDirectory(res || { data: [], totalEmployees: 0, totalDocuments: 0 });
@@ -37,7 +40,7 @@ export default function AllDocuments() {
     } finally {
       setLoading(false);
     }
-  }, [filters, toast]);
+  }, [filters, debouncedSearch, toast]);
 
   useEffect(() => {
     load();

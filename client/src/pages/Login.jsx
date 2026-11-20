@@ -5,7 +5,6 @@ import {
   ArrowRight,
   BarChart3,
   CalendarCheck2,
-  ChevronDown,
   Coins,
   GraduationCap,
   Layers,
@@ -24,6 +23,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { Logo } from '../components/Layout';
+import { Select } from '../components/ui';
 
 const QUICK_ROLES = [
   { role: 'Super Admin', name: 'Amelia Hart', email: 'admin@aurorahr.com', password: 'admin123' },
@@ -334,32 +334,29 @@ export default function Login() {
                   </span>
                   <span className="text-[10px] text-slate-400">Auto-fill & test</span>
                 </div>
-                <div className="relative">
-                  <select
-                    id="login-quick-role"
-                    name="quick_role"
-                    aria-label="Quick role selector"
-                    defaultValue=""
-                    onChange={(e) => {
-                      const selected = QUICK_ROLES.find((r) => r.role === e.target.value);
-                      if (selected) {
-                        setForm({ email: selected.email, password: selected.password });
-                        setError('');
-                      }
-                    }}
-                    className="w-full appearance-none rounded-xl border border-slate-200 bg-white/90 px-3 py-2 pr-8 text-[12.5px] font-medium text-slate-700 shadow-2xs transition focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer"
-                  >
-                    <option value="" disabled>
-                      Select a role to test…
+                <Select
+                  id="login-quick-role"
+                  name="quick_role"
+                  aria-label="Quick role selector"
+                  defaultValue=""
+                  onChange={(e) => {
+                    const selected = QUICK_ROLES.find((r) => r.role === e.target.value);
+                    if (selected) {
+                      setForm({ email: selected.email, password: selected.password });
+                      setError('');
+                    }
+                  }}
+                  className="w-full rounded-xl bg-white/90 px-3 py-2 pr-8 text-[12.5px] font-medium text-slate-700 shadow-2xs focus:border-violet-500 focus:ring-1 focus:ring-violet-500 cursor-pointer"
+                >
+                  <option value="" disabled>
+                    Select a role to test…
+                  </option>
+                  {QUICK_ROLES.map((r) => (
+                    <option key={r.role} value={r.role}>
+                      {r.role} ({r.name})
                     </option>
-                    {QUICK_ROLES.map((r) => (
-                      <option key={r.role} value={r.role}>
-                        {r.role} ({r.name})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                </div>
+                  ))}
+                </Select>
               </div>
             </div>
           </div>

@@ -13,6 +13,7 @@ import {
   Pagination,
   SearchInput,
   SectionTitle,
+  Select,
 } from '../../components/ui';
 import {
   EXPENSE_STATUS,
@@ -137,25 +138,25 @@ export default function ExpenseClaims() {
         <Card className="p-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <SearchInput value={filters.search} onChange={(v) => update('search', v)} placeholder="Search employee, claim ID…" />
-            <select id="claims-status" name="status" aria-label="Approval status" className="input py-2 text-[12.5px]" value={filters.status} onChange={(e) => update('status', e.target.value)}>
+            <Select id="claims-status" name="status" aria-label="Approval status" className="py-2 text-[12.5px]" value={filters.status} onChange={(e) => update('status', e.target.value)}>
               <option value="">All approval statuses</option>
               {Object.entries(EXPENSE_STATUS).map(([key, meta]) => <option key={key} value={key}>{meta.label}</option>)}
-            </select>
-            <select id="claims-reimbursement-status" name="reimbursement_status" aria-label="Reimbursement status" className="input py-2 text-[12.5px]" value={filters.reimbursementStatus} onChange={(e) => update('reimbursementStatus', e.target.value)}>
+            </Select>
+            <Select id="claims-reimbursement-status" name="reimbursement_status" aria-label="Reimbursement status" className="py-2 text-[12.5px]" value={filters.reimbursementStatus} onChange={(e) => update('reimbursementStatus', e.target.value)}>
               <option value="">All reimbursement statuses</option>
               {Object.entries(REIMBURSEMENT_STATUS).map(([key, meta]) => <option key={key} value={key}>{meta.label}</option>)}
-            </select>
-            <select id="claims-category" name="category_id" aria-label="Category" className="input py-2 text-[12.5px]" value={filters.categoryId} onChange={(e) => update('categoryId', e.target.value)}>
+            </Select>
+            <Select id="claims-category" name="category_id" aria-label="Category" className="py-2 text-[12.5px]" value={filters.categoryId} onChange={(e) => update('categoryId', e.target.value)}>
               <option value="">All categories</option>
               {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+            </Select>
             {departments.length > 0 && (
-              <select id="claims-department" name="department_id" aria-label="Department" className="input py-2 text-[12.5px]" value={filters.departmentId} onChange={(e) => update('departmentId', e.target.value)}>
+              <Select id="claims-department" name="department_id" aria-label="Department" className="py-2 text-[12.5px]" value={filters.departmentId} onChange={(e) => update('departmentId', e.target.value)}>
                 <option value="">All departments</option>
                 {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-              </select>
+              </Select>
             )}
-            <select id="claims-sort" name="sort" aria-label="Sort claims" className="input py-2 text-[12.5px]" value={`${filters.sort}:${filters.dir}`} onChange={(e) => {
+            <Select id="claims-sort" name="sort" aria-label="Sort claims" className="py-2 text-[12.5px]" value={`${filters.sort}:${filters.dir}`} onChange={(e) => {
               const [sort, dir] = e.target.value.split(':');
               setFilters((prev) => ({ ...prev, sort, dir }));
               setPage(1);
@@ -167,7 +168,7 @@ export default function ExpenseClaims() {
                 </optgroup>
               ))}
               <option value="created_at:desc">Newest first</option>
-            </select>
+            </Select>
             <input id="claims-from" name="from" aria-label="From date" type="date" className="input py-2 text-[12.5px]" value={filters.from} onChange={(e) => update('from', e.target.value)} title="From date" />
             <div className="flex items-center gap-2">
               <input id="claims-to" name="to" aria-label="To date" type="date" className="input py-2 text-[12.5px]" value={filters.to} onChange={(e) => update('to', e.target.value)} title="To date" />

@@ -11,6 +11,7 @@ import {
 import { useToast } from '../../context/ToastContext';
 import { api, fmtDate } from '../../lib/api';
 import { Avatar, Button, Card, EmptyState, LoadingBlock, Progress, SearchInput, Select, StatCard } from '../../components/ui';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { CategoryPill, fmtDateTime } from './announcement-ui';
 
 export default function AcknowledgmentReports() {
@@ -21,6 +22,7 @@ export default function AcknowledgmentReports() {
   const [loadingList, setLoadingList] = useState(true);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ search: '', status: '', departmentId: '' });
+  const debouncedSearch = useDebouncedValue(filters.search);
 
   const loadList = useCallback(async () => {
     setLoadingList(true);
@@ -43,7 +45,7 @@ export default function AcknowledgmentReports() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (filters.search.trim()) params.set('search', filters.search.trim());
+      if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim());
       if (filters.status) params.set('status', filters.status);
       if (filters.departmentId) params.set('departmentId', filters.departmentId);
       const res = await api.get(`/announcements/reports/${selectedId}?${params.toString()}`);
@@ -53,7 +55,7 @@ export default function AcknowledgmentReports() {
     } finally {
       setLoading(false);
     }
-  }, [selectedId, filters, toast]);
+  }, [selectedId, filters, debouncedSearch, toast]);
 
   useEffect(() => { loadReport(); }, [loadReport]);
 

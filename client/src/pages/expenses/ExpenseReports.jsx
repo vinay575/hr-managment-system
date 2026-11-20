@@ -13,6 +13,7 @@ import {
   LoadingBlock,
   Progress,
   SectionTitle,
+  Select,
   StatCard,
 } from '../../components/ui';
 import { EmployeePicker } from '../../components/ui';
@@ -171,19 +172,19 @@ export default function ExpenseReports() {
             />
           )}
           {departments.length > 0 && (
-            <select id="expense-reports-department" name="department_id" aria-label="Department" className="input py-2 text-[12.5px]" value={filters.departmentId} onChange={(e) => update('departmentId', e.target.value)}>
+            <Select id="expense-reports-department" name="department_id" aria-label="Department" className="py-2 text-[12.5px]" value={filters.departmentId} onChange={(e) => update('departmentId', e.target.value)}>
               <option value="">All departments</option>
               {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </select>
+            </Select>
           )}
-          <select id="expense-reports-category" name="category_id" aria-label="Category" className="input py-2 text-[12.5px]" value={filters.categoryId} onChange={(e) => update('categoryId', e.target.value)}>
+          <Select id="expense-reports-category" name="category_id" aria-label="Category" className="py-2 text-[12.5px]" value={filters.categoryId} onChange={(e) => update('categoryId', e.target.value)}>
             <option value="">All categories</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-          <select id="expense-reports-status" name="status" aria-label="Status" className="input py-2 text-[12.5px]" value={filters.status} onChange={(e) => update('status', e.target.value)}>
+          </Select>
+          <Select id="expense-reports-status" name="status" aria-label="Status" className="py-2 text-[12.5px]" value={filters.status} onChange={(e) => update('status', e.target.value)}>
             <option value="">All statuses</option>
             {Object.entries(EXPENSE_STATUS).map(([key, meta]) => <option key={key} value={key}>{meta.label}</option>)}
-          </select>
+          </Select>
           <div className="flex items-center gap-2">
             <Button variant="secondary" size="sm" icon={Filter} onClick={load}>Refresh</Button>
             <Button variant="ghost" size="sm" icon={BarChart3} onClick={() => exportCsv('reimbursements')}>Reimbursements</Button>
